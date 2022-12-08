@@ -23,15 +23,15 @@ const request = require('request'),
 app.listen(process.env.PORT || 1337, () => console.log('webhook is listening'));
 
 app.post('/message', (req, res) => {
-  const phone_number = '5561981297516';
+  const phone_number = '5561995257425';
   const phone_number_id = '109951971956273';
   let body = req.body;
   axios({
     method: 'POST',
-    url: 'https://graph.facebook.com/v15.0/109951971956273/messages?access_token=EAAJ1RTPM5H0BAJNINP0KdmnueEW7tRp10j6qPB5ApFMxrwri5eDJNNmZBN9lgNmrwTBt7D538Ifs5CFDrokZBvgOlTOrmjK7t1Yukj0ckGnVtpFXqmZABaWDm16gTnil8O2GfEZBDZBsO797Wav1D3BVo4Vebl1z0jmlZA9sNdIUz6v14rd1sZCQRZBXXH9I24YnGdrsf8AcUSddvPZARyvbVJTTpxeehUFAZD',
+    url: 'https://graph.facebook.com/v15.0/109951971956273/messages?access_token=EAAJ1RTPM5H0BAIAUL63U8NKjvHUjdnlrpEyMG41HULZBN16VpyZCi2ZCEYM8Nxm3lfrZA8vw82wgAEKtZANfLuAtGHLv98iN6Io6Uj6yxZCWi8E9sGrKSVyalwaUKH7o3fI5CfDWcItRy4gfoqSZAsgUIZBo6ZBSWykuqXIcmEuUv2ahAOc99QQ2vn6jHPYpUdnO2kg6LO7QEdAH4gIj59iVdoGAGMhApf94ZD',
     data: {
       messaging_product: 'whatsapp',
-      to: '5561981297516',
+      to: phone_number,
       type: 'template',
       template: {
         name: 'sample_shipping_confirmation',
@@ -80,22 +80,28 @@ app.post('/webhook', (req, res) => {
         req.body.entry[0].changes[0].value.metadata.phone_number_id;
       let from = req.body.entry[0].changes[0].value.messages[0].from; // extract the phone number from the webhook payload
       let msg_body = req.body.entry[0].changes[0].value.messages[0].text.body; // extract the message text from the webhook payload
-      // axios({
-      //   method: 'POST', // Required, HTTP method, a string, e.g. POST, GET
-      //   url:
-      //     'https://graph.facebook.com/v12.0/' +
-      //     phone_number_id +
-      //     '/messages?access_token=' +
-      //     token,
-      //   data: {
-      //     messaging_product: 'whatsapp',
-      //     to: '5561981297516',
-      //     text: { body: 'Ack: ' + msg_body },
-      //   },
-      //   headers: { 'Content-Type': 'application/json' },
-      // });
+      axios({
+        method: 'POST', // Required, HTTP method, a string, e.g. POST, GET
+        url:
+          'https://graph.facebook.com/v12.0/' +
+          phone_number_id +
+          '/messages?access_token=' +
+          token,
+        data: {
+          messaging_product: 'whatsapp',
+          to: '5561995257425',
+          text: {
+            body:
+              msg_body === 'confirmar'
+                ? 'Agendamento Confirmado!'
+                : 'Deseja remarcar?',
+          },
+        },
+        headers: { 'Content-Type': 'application/json' },
+      });
     }
     res.sendStatus(200);
+    console.log(req.body);
   } else {
     // Return a '404 Not Found' if event is not from a WhatsApp API
     res.sendStatus(404);
