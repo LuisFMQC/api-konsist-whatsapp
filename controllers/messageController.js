@@ -35,7 +35,6 @@ exports.postCliente = async (req, res, next) => {
 exports.postMessage = async (req, res, next) => {
   try {
     const body = req.body;
-    const payload = await new MessageService().createMessage(body);
     const dadosCliente = await new MessageService().getClienteById(
       body.idcliente,
     );
@@ -86,10 +85,10 @@ exports.postMessage = async (req, res, next) => {
         },
       }).then(async (response) => {
         try {
-          const id = response.data.messages[0].id;
-          console.log(id);
-          const data = await new MessageService().updateMessage(id, body);
-          res.status(200).send(data);
+          const id = await response.data.messages[0].id;
+          const payload = await new MessageService().createMessage(body, id);
+          // const data = await new MessageService().updateMessage(id, body);
+          res.status(200).send(payload);
         } catch (error) {
           res.status(400).send({
             message: error.message,
@@ -128,43 +127,37 @@ exports.postWebhook = async (req, res, next) => {
         req.body.entry[0].changes[0].value.metadata.phone_number_id;
       let from = req.body.entry[0].changes[0].value.messages[0].from;
 
-      if (
-        req.body.entry[0].changes[0].value.messages[0] &&
-        req.body.entry[0].changes[0].value.messages[0].button
-      ) {
-        let msg_body =
+      if (req.body.entry[0].changes[0].value.messages[0].button) {
+        const msg_body =
           req.body.entry[0].changes[0].value.messages[0].button.payload;
 
         if (msg_body === 'Confirmar' || msg_body === 'Desmarcar') {
-          let resposta = msg_body === 'Confirmar' ? 'c' : 'd';
-          let idConversa =
-            req.body.entry[0].changes[0].value.messages[0].context.id;
-          /* ? req.body.entry[0].changes[0].value.messages[0].context.id
-            : '' */
-          let payload = await new MessageService().updateStatus(
+          const resposta = msg_body === 'Confirmar' ? 'c' : 'd';
+          const idConversa = await req.body.entry[0].changes[0].value
+            .messages[0].context.id;
+          const payload = await new MessageService().updateStatus(
             resposta,
             idConversa,
           );
-          let idCliente = await new MessageService().getIdCliente(idConversa);
-          let dadosCliente = idCliente.rows[0]
+          const idCliente = await new MessageService().getIdCliente(idConversa);
+          const dadosCliente = idCliente.rows[0]
             ? await new MessageService().getClienteById(
                 idCliente.rows[0].idcliente,
               )
             : null;
-          let token = dadosCliente
+          const token = dadosCliente
             ? await dadosCliente.rows[0].tokenwhatsapp
             : null;
-          function getToken() {
-            return token;
-          }
-          if (getToken() !== null) {
+
+          if (token !== null) {
+            console.log('Enviando mensagem');
             axios({
               method: 'POST',
               url:
                 'https://graph.facebook.com/v12.0/' +
                 phone_number_id +
                 '/messages?access_token=' +
-                getToken(),
+                token,
               data: {
                 messaging_product: 'whatsapp',
                 to: from,
@@ -173,12 +166,12 @@ exports.postWebhook = async (req, res, next) => {
                 },
               },
               headers: { 'Content-Type': 'application/json' },
-            }).then(res.sendStatus(200)) /* .then(console.log(res)) */;
+            });
           }
         }
       }
     }
-    // res.sendStatus(200);
+    res.sendStatus(200);
   } else {
     res.sendStatus(404);
   }

@@ -9,8 +9,8 @@ class MessageService {
     return this.repository.getStatusAtendimento(code);
   }
 
-  async createMessage(dadosAtendimento) {
-    return this.repository.postDadosAtendimento(dadosAtendimento);
+  async createMessage(dadosAtendimento, code) {
+    return this.repository.postDadosAtendimento(dadosAtendimento, code);
   }
 
   async updateMessage(code, dadosAtendimento) {

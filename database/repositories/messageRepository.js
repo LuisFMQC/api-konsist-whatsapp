@@ -19,16 +19,17 @@ class MessageRepository {
     return registros;
   }
 
-  async postDadosAtendimento(dadosAtendimento) {
+  async postDadosAtendimento(dadosAtendimento, code) {
     const conn = await db.connectToPg();
     const query =
-      'INSERT INTO "confirmacaowhatsapp" ( "chave", "indstatus", "idcliente", "mensagem", "contato" ) VALUES ( $1, $2, $3, $4, $5 );';
+      'INSERT INTO "confirmacaowhatsapp" ( "chave", "indstatus", "idcliente", "mensagem", "contato", "idconversa" ) VALUES ( $1, $2, $3, $4, $5, $6 );';
     const dados = conn.query(query, [
       dadosAtendimento.chave,
       dadosAtendimento.indstatus,
       dadosAtendimento.idcliente,
       dadosAtendimento.mensagem,
       dadosAtendimento.contato,
+      code,
     ]);
 
     return dados;
