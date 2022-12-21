@@ -20,4 +20,4 @@ const connectToPg = async () => {
 
 connectToPg();
 
-module.exports = { connectToPg };
+module.exports = { connectToPg, pool };

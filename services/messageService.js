@@ -13,6 +13,14 @@ class MessageService {
     return this.repository.postDadosAtendimento(dadosAtendimento, code);
   }
 
+  async novoRegistro(dadosAtendimento, status, code) {
+    return this.repository.postDadosAtendimentoNovoRegistro(
+      dadosAtendimento,
+      status,
+      code,
+    );
+  }
+
   async updateMessage(code, dadosAtendimento) {
     return this.repository.updateDadosAtendimento(code, dadosAtendimento);
   }
