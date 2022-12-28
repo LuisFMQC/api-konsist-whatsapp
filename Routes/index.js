@@ -6,6 +6,6 @@ router.get('/', (req, res, next) => {
   res.status(200).send('Api Whatsapp KonsistMed');
 });
 router.post('/webhook', messageController.postWebhook);
-router.post('/criarcliente', messageController.postCliente);
+router.post('/criaratualizarcliente', messageController.postCliente);
 
 module.exports = router;

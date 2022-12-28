@@ -9,8 +9,12 @@ class MessageService {
     return this.repository.getStatusAtendimento(code);
   }
 
-  async createMessage(dadosAtendimento, code) {
-    return this.repository.postDadosAtendimento(dadosAtendimento, code);
+  async createMessage(dadosAtendimento, idCliente, code) {
+    return this.repository.postDadosAtendimento(
+      dadosAtendimento,
+      idCliente,
+      code,
+    );
   }
 
   async novoRegistro(dadosAtendimento, status, code) {
@@ -33,6 +37,14 @@ class MessageService {
     return this.repository.getClienteById(code);
   }
 
+  async getClienteByIdTelefone(code) {
+    return this.repository.getClienteByIdTelefone(code);
+  }
+
+  async getClienteBySchema(schema) {
+    return this.repository.getClienteBySchema(schema);
+  }
+
   async getClienteByIdCliente(code) {
     return this.repository.getClienteByIdCliente(code);
   }
@@ -49,8 +61,8 @@ class MessageService {
     return this.repository.getIdCliente(code);
   }
 
-  async getAllMessages(dados) {
-    return this.repository.getAllMessages(dados);
+  async getAllMessages(dados, idCliente) {
+    return this.repository.getAllMessages(dados, idCliente);
   }
 }
 

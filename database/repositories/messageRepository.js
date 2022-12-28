@@ -1,21 +1,17 @@
 const db = require('../conexao');
 
 class MessageRepository {
-  async getAllMessages(dadosMessagens) {
+  async getAllMessages(dadosMensagens, idCliente) {
     const query =
-      'SELECT * FROM "confirmacaowhatsapp" WHERE "chave" > $1 AND "idcliente" = $2';
+      'SELECT * FROM "confirmacaowhatsapp" WHERE "id" > $1 AND "idcliente" = $2';
     const dados = await new Promise((resolve, reject) => {
-      db.query(
-        query,
-        [dadosMessagens.chave, dadosMessagens.idcliente],
-        (erro, result) => {
-          if (erro) {
-            console.log(erro);
-            return reject('Erro:' + erro);
-          }
-          return resolve(result);
-        },
-      );
+      db.query(query, [dadosMensagens.id, idCliente], (erro, result) => {
+        if (erro) {
+          console.log(erro);
+          return reject('Erro:' + erro);
+        }
+        return resolve(result);
+      });
     });
     return dados;
   }
@@ -36,19 +32,22 @@ class MessageRepository {
     return dados;
   }
 
-  async postDadosAtendimento(dadosAtendimento, code) {
+  async postDadosAtendimento(dadosAtendimento, idCliente, code) {
     const query =
-      'INSERT INTO "confirmacaowhatsapp" ( "chave", "indstatus", "idcliente", "mensagem", "contato", "idconversa" ) VALUES ( $1, $2, $3, $4, $5, $6 )';
+      'INSERT INTO "confirmacaowhatsapp" ( "chave", "idcliente", "contato", "idconversa", "data_atendimento", "hora_atendimento", "nomepaciente", "medico", "localatendimento" ) VALUES ( $1, $2, $3, $4, $5, $6, $7, $8, $9 )';
     const dados = await new Promise((resolve, reject) => {
       db.query(
         query,
         [
           dadosAtendimento.chave,
-          dadosAtendimento.indstatus,
-          dadosAtendimento.idcliente,
-          dadosAtendimento.mensagem,
+          idCliente,
           dadosAtendimento.contato,
           code,
+          dadosAtendimento.data_atendimento,
+          dadosAtendimento.hora_atendimento,
+          dadosAtendimento.nomepaciente,
+          dadosAtendimento.medico,
+          dadosAtendimento.localatendimento,
         ],
         (erro, result) => {
           if (erro) {
@@ -65,7 +64,7 @@ class MessageRepository {
 
   async postDadosAtendimentoNovoRegistro(dadosAtendimento, status, code) {
     const query =
-      'INSERT INTO "confirmacaowhatsapp" ( "chave", "indstatus", "idcliente", "mensagem", "contato", "idconversa" ) VALUES ( $1, $2, $3, $4, $5, $6 )';
+      'INSERT INTO "confirmacaowhatsapp" ( "chave", "indstatus", "idcliente", "mensagem", "contato", "idconversa", "data_atendimento", "hora_atendimento", "nomepaciente", "medico", "localatendimento" ) VALUES ( $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11 )';
     const dados = await new Promise((resolve, reject) => {
       db.query(
         query,
@@ -76,6 +75,11 @@ class MessageRepository {
           dadosAtendimento.mensagem,
           dadosAtendimento.contato,
           code,
+          dadosAtendimento.data_atendimento,
+          dadosAtendimento.hora_atendimento,
+          dadosAtendimento.nomepaciente,
+          dadosAtendimento.medico,
+          dadosAtendimento.localatendimento,
         ],
         (erro, result) => {
           if (erro) {
@@ -141,6 +145,37 @@ class MessageRepository {
     return dados;
   }
 
+  async getClienteByIdTelefone(code) {
+    const query =
+      'SELECT * FROM "agendawebcliente" WHERE "idtelefonewhatsapp" = $1';
+    const dados = await new Promise((resolve, reject) => {
+      db.query(query, [code], (erro, result) => {
+        if (erro) {
+          console.log(erro);
+          return reject('Erro:' + erro);
+        }
+        return resolve(result);
+      });
+    });
+
+    return dados;
+  }
+
+  async getClienteBySchema(schema) {
+    const query = 'SELECT * FROM "agendawebcliente" WHERE "nome_schema" = $1';
+    const dados = await new Promise((resolve, reject) => {
+      db.query(query, [schema], (erro, result) => {
+        if (erro) {
+          console.log(erro);
+          return reject('Erro:' + erro);
+        }
+        return resolve(result);
+      });
+    });
+
+    return dados;
+  }
+
   async getClienteByIdCliente(code) {
     const query = 'SELECT * FROM "agendawebcliente" WHERE "idcliente" = $1';
     const dados = await new Promise((resolve, reject) => {
@@ -158,7 +193,7 @@ class MessageRepository {
 
   async insertCliente(dadosCliente) {
     const query =
-      'INSERT INTO "agendawebcliente" ( "nome", "idcliente", "nome_schema", "idtelefonewhatsapp", "tokenwhatsapp" ) VALUES ( $1, $2, $3, $4, $5 )';
+      'INSERT INTO "agendawebcliente" ( "nome", "idcliente", "nome_schema", "idtelefonewhatsapp", "tokenwhatsapp", "contato" ) VALUES ( $1, $2, $3, $4, $5, $6 )';
     const dados = await new Promise((resolve, reject) => {
       db.query(
         query,
@@ -168,6 +203,7 @@ class MessageRepository {
           dadosCliente.nome_schema,
           dadosCliente.idtelefonewhatsapp,
           dadosCliente.tokenwhatsapp,
+          dadosCliente.contato,
         ],
         (erro, result) => {
           if (erro) {
