@@ -1,4 +1,4 @@
-const MessageRepository = require('../database/repositories/messageRepository');
+const MessageRepository = require("../database/repositories/messageRepository");
 
 class MessageService {
   constructor() {
@@ -9,11 +9,12 @@ class MessageService {
     return this.repository.getStatusAtendimento(code);
   }
 
-  async createMessage(dadosAtendimento, idCliente, code) {
+  async createMessage(dadosPaciente, dadosAgendamento, idCliente, code) {
     return this.repository.postDadosAtendimento(
-      dadosAtendimento,
+      dadosPaciente,
+      dadosAgendamento,
       idCliente,
-      code,
+      code
     );
   }
 
@@ -21,7 +22,7 @@ class MessageService {
     return this.repository.postDadosAtendimentoNovoRegistro(
       dadosAtendimento,
       status,
-      code,
+      code
     );
   }
 
