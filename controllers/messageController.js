@@ -1,6 +1,7 @@
 require('dotenv').config();
 const MessageService = require('../services/messageService.js');
 const axios = require('axios');
+const { criaJwt } = require('../auth/verificaJWT.js');
 
 async function enviaMensagem(
   idTelefone,
@@ -163,12 +164,15 @@ exports.postCliente = async (req, res, next) => {
     const testandoCliente = await new MessageService().getClienteBySchema(
       body.nome_schema,
     );
+    const id = testandoCliente.rows[0].id;
+    const schema = testandoCliente.rows[0].nome_schema;
     //verificação se o cliente já existe
     if (testandoCliente.rows[0]) {
-      // if (testandoCliente.rows[0].status === true) {
       //Caso o cliente exista atualizo o tokenwhatsapp e o idtelefonewhatsapp
       const updateCliente = await new MessageService().updateCliente(body);
-      res.status(200).send('Cliente atualizado com sucesso.');
+      res
+        .status(200)
+        .send(criaJwt(id, schema, 'Cliente atualizado com sucesso.'));
       // }
     } else {
       //Caso cliente não exista no DB ele será criado.
@@ -176,7 +180,15 @@ exports.postCliente = async (req, res, next) => {
       const cliente = await new MessageService().getClienteBySchema(
         body.nome_schema,
       );
-      res.status(200).send('Cliente criado com sucesso.');
+      res
+        .status(200)
+        .send(
+          criaJwt(
+            cliente.rows[0].id,
+            cliente.rows[0].nome_schema,
+            'Cliente criado com sucesso.',
+          ),
+        );
     }
   } catch (error) {
     res.status(400).send({
@@ -198,39 +210,39 @@ exports.postMessage = async (req, res, next) => {
     if (res.status(200)) {
       if (!Array.isArray(body)) {
         body.agendamento.map(async (agendamento) => {
-          try {
-            await enviaMensagem(
-              idTelefone,
-              token,
-              idCliente,
-              body,
-              agendamento,
-              dadosCliente,
-              res,
-            );
-          } catch (e) {
-            console.log('Error:' + e.message);
-          }
+          await enviaMensagem(
+            idTelefone,
+            token,
+            idCliente,
+            body,
+            agendamento,
+            dadosCliente,
+            res,
+          );
         });
       } else {
         body.forEach(async (data) => {
           data.agendamento.map(async (agendamento) => {
-            try {
-              await enviaMensagem(
-                idTelefone,
-                token,
-                idCliente,
-                data,
-                agendamento,
-                dadosCliente,
-                res,
-              );
-            } catch (e) {
-              console.log('Error: ' + e.message);
-            }
+            await enviaMensagem(
+              idTelefone,
+              token,
+              idCliente,
+              data,
+              agendamento,
+              dadosCliente,
+              res,
+            );
           });
         });
       }
+      // await enviaMensagem(
+      //   idTelefone,
+      //   token,
+      //   idCliente,
+      //   body,
+      //   dadosCliente,
+      //   res
+      // );
     }
     res.sendStatus(200);
   } catch (error) {
