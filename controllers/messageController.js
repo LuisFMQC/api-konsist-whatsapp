@@ -14,81 +14,98 @@ async function enviaMensagem(
 ) {
   const [ano, mes, dia] = agendamento.agendamento_data.split("-");
   const data = dia + "/" + mes + "/" + ano;
-  await axios({
-    method: "POST",
-    url: `https://graph.facebook.com/v15.0/${idTelefone}/messages?access_token=${token}`,
-    data: {
-      messaging_product: "whatsapp",
-      to: body.telefone,
-      type: "template",
-      template: {
-        name: "confirmacao_atendimento",
-        language: {
-          code: "pt_BR",
-          policy: "deterministic",
-        },
-        components: [
-          {
-            type: "body",
-            parameters: [
-              {
-                type: "text",
-                text: body.paciente,
-              },
-              {
-                type: "text",
-                text: dadosCliente.rows[0].nome,
-              },
-              {
-                type: "text",
-                text: data,
-              },
-              {
-                type: "text",
-                text: agendamento.agendamento_hora,
-              },
-
-              {
-                type: "text",
-                text: agendamento.empresa_unidade,
-              },
-              {
-                type: "text",
-                text: agendamento.agendamento_medico,
-              },
-            ],
+  try {
+    await axios({
+      method: "POST",
+      url: `https://graph.facebook.com/v15.0/${idTelefone}/messages?access_token=${token}`,
+      data: {
+        messaging_product: "whatsapp",
+        to: body.telefone,
+        type: "template",
+        template: {
+          name: "confirmacao_atendimento",
+          language: {
+            code: "pt_BR",
+            policy: "deterministic",
           },
-        ],
+          components: [
+            {
+              type: "body",
+              parameters: [
+                {
+                  type: "text",
+                  text: body.paciente,
+                },
+                {
+                  type: "text",
+                  text: dadosCliente.rows[0].nome,
+                },
+                {
+                  type: "text",
+                  text: data,
+                },
+                {
+                  type: "text",
+                  text: agendamento.agendamento_hora,
+                },
+
+                {
+                  type: "text",
+                  text:
+                    agendamento.empresa_unidade +
+                    " - " +
+                    agendamento.empresa_endereco,
+                },
+                {
+                  type: "text",
+                  text: agendamento.agendamento_medico,
+                },
+              ],
+            },
+          ],
+        },
+        headers: {
+          "Content-Type": "application/json",
+        },
       },
-      headers: {
-        "Content-Type": "application/json",
-      },
-    },
-  }).then(async (response) => {
-    if (res.status(200)) {
-      let id = await response.data.messages[0].id;
-      let payload = await new MessageService().createMessage(
-        body,
-        agendamento,
-        idCliente,
-        id
-      );
-    }
-  });
+    }).then(async (response) => {
+      if (res.status(200)) {
+        let id = await response.data.messages[0].id;
+        let payload = await new MessageService().createMessage(
+          body,
+          agendamento,
+          idCliente,
+          id
+        );
+      }
+    });
+  } catch (e) {
+    console.log(
+      "Error: O número de telefone " + body.telefone + " é inválido."
+    );
+  }
 }
 
 const respostasAceitas = {
   async c(statusDB, idConversa, dadosCliente) {
-    if (statusDB.rows[0].indstatus === null) {
-      const payload = await new MessageService().updateStatus("C", idConversa);
+    if (statusDB.rows[0].indstatus === null && !statusDB.rows[1]) {
+      const payload = await new MessageService().novoRegistro(
+        statusDB.rows[0],
+        "C",
+        idConversa
+      );
       return "Agendamento confirmado, obrigado.";
-    } else if (statusDB.rows[0].indstatus === "D") {
+    } else if (statusDB.rows[1].indstatus === "D") {
       return `Este agendamento já foi desmarcado anteriormente, impossibilitando assim sua confirmação! Caso deseje remarcar o atendimento, favor entrar em contato conosco no ${dadosCliente.rows[0].contato}.`;
     }
   },
   async d(statusDB, idConversa, dadosCliente) {
     if (statusDB.rows[0].indstatus === null) {
-      const payload = await new MessageService().updateStatus("D", idConversa);
+      const payload = await new MessageService().novoRegistro(
+        statusDB.rows[0],
+        "D",
+        idConversa
+      );
       return `Agendamento desmarcado! Caso deseje remarcar o atendimento, favor entrar em contato conosco no ${dadosCliente.rows[0].contato}.`;
     } else if (statusDB.rows[0].indstatus === "C") {
       const payload = await new MessageService().novoRegistro(
@@ -255,7 +272,7 @@ exports.postMessage = async (req, res, next) => {
 exports.postWebhook = async (req, res, next) => {
   let body = req.body;
 
-  console.log(JSON.stringify(body, null, 2));
+  // console.log(JSON.stringify(body, null, 2));
 
   if (req.body.object) {
     if (verificaBody(req)) {
