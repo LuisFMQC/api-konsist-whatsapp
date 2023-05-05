@@ -65,6 +65,10 @@ class MessageService {
   async getAllMessages(dados, idCliente) {
     return this.repository.getAllMessages(dados, idCliente);
   }
+
+  async getRelatorio(datas, id) {
+    return this.repository.getRelatorio(datas, id);
+  }
 }
 
 module.exports = MessageService;

@@ -6,6 +6,7 @@ const { authenticate } = require("../auth/verificaJWT");
 router.get("/", authenticate, (req, res, next) => {
   res.status(200).send("Api Whatsapp KonsistMed");
 });
+router.post("/relatorioenvio", authenticate, messageController.getrelatorio);
 router.get("/webhook", messageController.getwebhook);
 router.post("/webhook", messageController.postWebhook);
 router.post("/criaratualizarcliente", messageController.postCliente);

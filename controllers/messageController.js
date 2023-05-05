@@ -23,7 +23,9 @@ async function enviaMensagem(
         to: body.telefone,
         type: "template",
         template: {
-          name: "confirmacao_atendimento",
+          name: agendamento.agendamento_preparo
+            ? "confirmacao_preparo"
+            : "confirmacao_atendimento",
           language: {
             code: "pt_BR",
             policy: "deterministic",
@@ -60,6 +62,12 @@ async function enviaMensagem(
                   type: "text",
                   text: agendamento.agendamento_medico,
                 },
+                agendamento.agendamento_preparo
+                  ? {
+                      type: "text",
+                      text: agendamento.agendamento_preparo,
+                    }
+                  : "",
               ],
             },
           ],
@@ -80,9 +88,7 @@ async function enviaMensagem(
       }
     });
   } catch (e) {
-    console.log(
-      "Error: O número de telefone " + body.telefone + " é inválido."
-    );
+    console.log("Error: " + e + "/ Telefone: " + body.telefone);
   }
 }
 
@@ -137,22 +143,26 @@ function verificaBody(req) {
 }
 
 async function enviaResposta(num, token, para, verifica) {
-  axios({
-    method: "POST",
-    url:
-      "https://graph.facebook.com/v12.0/" +
-      num +
-      "/messages?access_token=" +
-      token,
-    data: {
-      messaging_product: "whatsapp",
-      to: para,
-      text: {
-        body: await verifica,
+  try {
+    await axios({
+      method: "POST",
+      url:
+        "https://graph.facebook.com/v12.0/" +
+        num +
+        "/messages?access_token=" +
+        token,
+      data: {
+        messaging_product: "whatsapp",
+        to: para,
+        text: {
+          body: await verifica,
+        },
       },
-    },
-    headers: { "Content-Type": "application/json" },
-  });
+      headers: { "Content-Type": "application/json" },
+    });
+  } catch (e) {
+    console.log(e.message);
+  }
 }
 
 exports.get = async (req, res, next) => {
@@ -166,12 +176,37 @@ exports.get = async (req, res, next) => {
         body,
         dadosCliente.rows[0].id
       );
+      console.log("Consultou Respostas");
       res.status(200).send(payload.rows);
     }
   } catch (error) {
     res.status(400).send({
       message: error.message,
     });
+    next(error);
+  }
+};
+
+exports.getrelatorio = async (req, res, next) => {
+  try {
+    const body = await req.body;
+    const dadosCliente = await new MessageService().getClienteBySchema(
+      body.nome_schema
+    );
+    body.data_inicial ? (body.data_inicial += " 00:00:00") : "";
+    body.data_final ? (body.data_final += " 23:59:59") : "";
+    if (dadosCliente.rows[0]) {
+      const payload = await new MessageService().getRelatorio(
+        body,
+        dadosCliente.rows[0].id
+      );
+      res.status(200).send(payload.rows);
+    }
+  } catch (error) {
+    res.status(400).send({
+      message: error,
+    });
+    // next(error);
   }
 };
 // Criar ou atualizar cliente no DB
@@ -211,6 +246,7 @@ exports.postCliente = async (req, res, next) => {
     res.status(400).send({
       message: error.message,
     });
+    next(error);
   }
 };
 
@@ -238,19 +274,42 @@ exports.postMessage = async (req, res, next) => {
           );
         });
       } else {
-        body.forEach(async (data) => {
-          data.agendamento.map(async (agendamento) => {
-            await enviaMensagem(
-              idTelefone,
-              token,
-              idCliente,
-              data,
-              agendamento,
-              dadosCliente,
-              res
-            );
+        try {
+          body.forEach(async (data, i) => {
+            try {
+              setTimeout(async () => {
+                try {
+                  await data.agendamento.map((agendamento, j) => {
+                    setTimeout(async () => {
+                      try {
+                        await enviaMensagem(
+                          idTelefone,
+                          token,
+                          idCliente,
+                          data,
+                          agendamento,
+                          dadosCliente,
+                          res
+                        );
+                      } catch (e) {
+                        console.log(e.message);
+                        next(e);
+                      }
+                    }, i * 1000 + j * 1000);
+                  });
+                } catch (e) {
+                  console.log(error);
+                  next(e);
+                }
+              }, i * 1000);
+            } catch (e) {
+              console.log(e.message);
+            }
           });
-        });
+        } catch (e) {
+          console.log(e.message);
+          next(e);
+        }
       }
       // await enviaMensagem(
       //   idTelefone,
@@ -263,70 +322,75 @@ exports.postMessage = async (req, res, next) => {
     }
     res.sendStatus(200);
   } catch (error) {
+    console.log("Erro no PostMessage!");
     res.status(400).send({
       message: error.message,
     });
+    next(error);
   }
 };
 
 exports.postWebhook = async (req, res, next) => {
-  let body = req.body;
+  try {
+    let body = await req.body;
 
-  // console.log(JSON.stringify(body, null, 2));
+    // console.log(JSON.stringify(body, null, 2));
 
-  if (req.body.object) {
-    if (verificaBody(req)) {
-      let phone_number_id =
-        req.body.entry[0].changes[0].value.metadata.phone_number_id;
-      let from = req.body.entry[0].changes[0].value.messages[0].from;
+    if (body.object) {
+      if (verificaBody(req)) {
+        let phone_number_id = await body.entry[0].changes[0].value.metadata
+          .phone_number_id;
+        let from = await body.entry[0].changes[0].value.messages[0].from;
 
-      if (req.body.entry[0].changes[0].value.messages[0].button) {
-        const status =
-          req.body.entry[0].changes[0].value.messages[0].button.payload ===
-          "Confirmar"
-            ? "c"
-            : "d";
-        const idCliente = await new MessageService().getIdCliente(
-          req.body.entry[0].changes[0].value.messages[0].context.id
-        );
-        const dadosCliente = idCliente.rows[0]
-          ? await new MessageService().getClienteById(
-              idCliente.rows[0].idcliente
-            )
-          : null;
-        const token =
-          dadosCliente !== null && dadosCliente.rowCount !== 0
+        if (body.entry[0].changes[0].value.messages[0].button) {
+          const status =
+            (await body.entry[0].changes[0].value.messages[0].button
+              .payload) === "Confirmar"
+              ? "c"
+              : "d";
+          const idCliente = await new MessageService().getIdCliente(
+            body.entry[0].changes[0].value.messages[0].context.id
+          );
+          const dadosCliente = idCliente.rows[0]
+            ? await new MessageService().getClienteById(
+                idCliente.rows[0].idcliente
+              )
+            : null;
+          const token =
+            dadosCliente !== null && dadosCliente.rowCount !== 0
+              ? await dadosCliente.rows[0].tokenwhatsapp
+              : null;
+
+          if (token) {
+            enviaResposta(
+              phone_number_id,
+              token,
+              from,
+              verifyStatus(
+                status,
+                req.body.entry[0].changes[0].value.messages[0].context.id,
+                dadosCliente
+              )
+            );
+          }
+        } else {
+          const dadosCliente =
+            await new MessageService().getClienteByIdTelefone(phone_number_id);
+          const token = dadosCliente
             ? await dadosCliente.rows[0].tokenwhatsapp
             : null;
-
-        if (token) {
-          enviaResposta(
-            phone_number_id,
-            token,
-            from,
-            verifyStatus(
-              status,
-              req.body.entry[0].changes[0].value.messages[0].context.id,
-              dadosCliente
-            )
-          );
-        }
-      } else {
-        const dadosCliente = await new MessageService().getClienteByIdTelefone(
-          phone_number_id
-        );
-        const token = dadosCliente
-          ? await dadosCliente.rows[0].tokenwhatsapp
-          : null;
-        const mensagem =
-          "Não entendi, por favor selecione um dos botões na mensagem acima para confirmar ou desmarcar seu atendimento.";
-        if (token) {
-          enviaResposta(phone_number_id, token, from, mensagem);
+          const mensagem =
+            "Não entendi, por favor selecione um dos botões na mensagem acima para confirmar ou desmarcar seu atendimento.";
+          if (token) {
+            enviaResposta(phone_number_id, token, from, mensagem);
+          }
         }
       }
+      res.sendStatus(200);
     }
-    res.sendStatus(200);
-  } else {
+  } catch (e) {
+    console.log("Error na resposta: " + e.message);
+    next(e);
     res.sendStatus(404);
   }
 };
