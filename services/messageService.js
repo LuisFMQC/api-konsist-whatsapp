@@ -18,6 +18,14 @@ class MessageService {
     );
   }
 
+  async createMessageFalha(dadosPaciente, dadosAgendamento, idCliente) {
+    return this.repository.postDadosAtendimentoFalha(
+      dadosPaciente,
+      dadosAgendamento,
+      idCliente
+    );
+  }
+
   async novoRegistro(dadosAtendimento, status, code) {
     return this.repository.postDadosAtendimentoNovoRegistro(
       dadosAtendimento,
@@ -66,8 +74,37 @@ class MessageService {
     return this.repository.getAllMessages(dados, idCliente);
   }
 
-  async getRelatorio(datas, id) {
-    return this.repository.getRelatorio(datas, id);
+  async getRelatorioCobranca(datas, id) {
+    return this.repository.getRelatorioCobranca(datas, id);
+  }
+
+  async getRelatorioEnvio(datas, id) {
+    return this.repository.getRelatorioEnvio(datas, id);
+  }
+
+  async getRelatorioEnvioUnico(chave, id) {
+    return this.repository.getRelatorioEnvioUnico(chave, id);
+  }
+
+  async getRelatorioFalha(datas, id) {
+    return this.repository.getRelatorioFalha(datas, id);
+  }
+
+  async getRelatorioFalhaUnico(chave, id) {
+    return this.repository.getRelatorioFalhaUnico(chave, id);
+  }
+
+  async getRegistroCobrado(idCliente, contato) {
+    return this.repository.getRegistroCobrado(idCliente, contato);
+  }
+
+  async postRegistroCobrado(dadosPaciente, dadosAgendamento, idCliente, code) {
+    return this.repository.postRegistroCobrado(
+      dadosPaciente,
+      dadosAgendamento,
+      idCliente,
+      code
+    );
   }
 }
 

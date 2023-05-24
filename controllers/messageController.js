@@ -23,7 +23,7 @@ async function enviaMensagem(
         to: body.telefone,
         type: "template",
         template: {
-          name: agendamento.agendamento_preparo
+          name: (await agendamento.agendamento_preparo)
             ? "confirmacao_preparo"
             : "confirmacao_atendimento",
           language: {
@@ -65,7 +65,10 @@ async function enviaMensagem(
                 agendamento.agendamento_preparo
                   ? {
                       type: "text",
-                      text: agendamento.agendamento_preparo,
+                      text: agendamento.agendamento_preparo
+                        .replace(/\n+/g, " ")
+                        .replace(/\t+/g, " ")
+                        .replace(/ +/g, " "),
                     }
                   : "",
               ],
@@ -85,9 +88,28 @@ async function enviaMensagem(
           idCliente,
           id
         );
+
+        const consultaRegistroCobrado =
+          await new MessageService().getRegistroCobrado(
+            idCliente,
+            body.telefone
+          );
+        if (!consultaRegistroCobrado.rows[0]) {
+          await new MessageService().postRegistroCobrado(
+            body,
+            agendamento,
+            idCliente,
+            id
+          );
+        }
       }
     });
   } catch (e) {
+    let payload = await new MessageService().createMessageFalha(
+      body,
+      agendamento,
+      idCliente
+    );
     console.log("Error: " + e + "/ Telefone: " + body.telefone);
   }
 }
@@ -187,7 +209,7 @@ exports.get = async (req, res, next) => {
   }
 };
 
-exports.getrelatorio = async (req, res, next) => {
+exports.getRelatorioCobranca = async (req, res, next) => {
   try {
     const body = await req.body;
     const dadosCliente = await new MessageService().getClienteBySchema(
@@ -196,10 +218,138 @@ exports.getrelatorio = async (req, res, next) => {
     body.data_inicial ? (body.data_inicial += " 00:00:00") : "";
     body.data_final ? (body.data_final += " 23:59:59") : "";
     if (dadosCliente.rows[0]) {
-      const payload = await new MessageService().getRelatorio(
+      const payload = await new MessageService().getRelatorioCobranca(
         body,
         dadosCliente.rows[0].id
       );
+      payload.rows.map((data) => {
+        for (let prop in data) {
+          if (data[prop] === null) {
+            data[prop] = "";
+          }
+        }
+      });
+      res.status(200).send(payload.rows);
+    }
+  } catch (error) {
+    res.status(400).send({
+      message: error,
+    });
+    // next(error);
+  }
+};
+
+exports.getRelatorioEnvio = async (req, res, next) => {
+  try {
+    const body = await req.body;
+    const dadosCliente = await new MessageService().getClienteBySchema(
+      body.nome_schema
+    );
+    body.data_inicial ? (body.data_inicial += " 00:00:00") : "";
+    body.data_final ? (body.data_final += " 23:59:59") : "";
+    if (dadosCliente.rows[0]) {
+      const payload = await new MessageService().getRelatorioEnvio(
+        body,
+        dadosCliente.rows[0].id
+      );
+      payload.rows.map((data) => {
+        for (let prop in data) {
+          if (data[prop] === null) {
+            data[prop] = "";
+          }
+        }
+      });
+      res.status(200).send(payload.rows);
+    }
+  } catch (error) {
+    res.status(400).send({
+      message: error,
+    });
+    // next(error);
+  }
+};
+
+exports.getRelatorioEnvioUnico = async (req, res, next) => {
+  try {
+    const body = await req.body;
+    const dadosCliente = await new MessageService().getClienteBySchema(
+      body.nome_schema
+    );
+    body.data_inicial ? (body.data_inicial += " 00:00:00") : "";
+    body.data_final ? (body.data_final += " 23:59:59") : "";
+    if (dadosCliente.rows[0]) {
+      const payload = await new MessageService().getRelatorioEnvioUnico(
+        body.chave,
+        dadosCliente.rows[0].id
+      );
+      payload.rows.map((data) => {
+        for (let prop in data) {
+          if (data[prop] === null) {
+            data[prop] = "";
+          }
+        }
+      });
+      if (payload.rows.length > 0) res.status(201).send(payload.rows);
+      else res.status(200).send("Nenhum agendamento encontrato!");
+    }
+  } catch (error) {
+    res.status(400).send({
+      message: error,
+    });
+    // next(error);
+  }
+};
+
+exports.getRelatorioFalhaUnico = async (req, res, next) => {
+  try {
+    const body = await req.body;
+    const dadosCliente = await new MessageService().getClienteBySchema(
+      body.nome_schema
+    );
+    body.data_inicial ? (body.data_inicial += " 00:00:00") : "";
+    body.data_final ? (body.data_final += " 23:59:59") : "";
+    if (dadosCliente.rows[0]) {
+      const payload = await new MessageService().getRelatorioFalhaUnico(
+        body.chave,
+        dadosCliente.rows[0].id
+      );
+      payload.rows.map((data) => {
+        for (let prop in data) {
+          if (data[prop] === null) {
+            data[prop] = "";
+          }
+        }
+      });
+      if (payload.rows.length > 0) res.status(201).send(payload.rows);
+      else res.status(200).send("Nenhum agendamento encontrato!");
+    }
+  } catch (error) {
+    res.status(400).send({
+      message: error,
+    });
+    // next(error);
+  }
+};
+exports.getRelatorioFalha = async (req, res, next) => {
+  try {
+    const body = await req.body;
+    const dadosCliente = await new MessageService().getClienteBySchema(
+      body.nome_schema
+    );
+    body.data_inicial ? (body.data_inicial += " 00:00:00") : "";
+    body.data_final ? (body.data_final += " 23:59:59") : "";
+    if (dadosCliente.rows[0]) {
+      const payload = await new MessageService().getRelatorioFalha(
+        body,
+        dadosCliente.rows[0].id
+      );
+      payload.rows.map((data) => {
+        for (let prop in data) {
+          if (data[prop] === null) {
+            data[prop] = "";
+          }
+        }
+      });
       res.status(200).send(payload.rows);
     }
   } catch (error) {
@@ -216,10 +366,14 @@ exports.postCliente = async (req, res, next) => {
     const testandoCliente = await new MessageService().getClienteBySchema(
       body.nome_schema
     );
-    const id = testandoCliente.rows[0].id;
-    const schema = testandoCliente.rows[0].nome_schema;
+    const id = (await testandoCliente.rows[0])
+      ? testandoCliente.rows[0].id
+      : "";
+    const schema = (await testandoCliente.rows[0])
+      ? testandoCliente.rows[0].nome_schema
+      : "";
     //verificação se o cliente já existe
-    if (testandoCliente.rows[0]) {
+    if (id) {
       //Caso o cliente exista atualizo o tokenwhatsapp e o idtelefonewhatsapp
       const updateCliente = await new MessageService().updateCliente(body);
       res
@@ -279,6 +433,9 @@ exports.postMessage = async (req, res, next) => {
             try {
               setTimeout(async () => {
                 try {
+                  // data.agendamento.sort(
+                  //   (a, b) => a.agendamento_chave - b.agendamento_chave
+                  // );
                   await data.agendamento.map((agendamento, j) => {
                     setTimeout(async () => {
                       try {

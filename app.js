@@ -1,6 +1,7 @@
 require("dotenv").config();
 const index = require("./Routes/index");
 const messageRoute = require("./routes/messageRoute");
+const relatorioRoute = require("./Routes/relatorioRoute");
 
 ("use strict");
 
@@ -19,3 +20,4 @@ app.listen(process.env.PORT || 1337, () => console.log("webhook is listening"));
 
 app.use("/", index);
 app.use("/message", messageRoute);
+app.use("/relatorio", relatorioRoute);
