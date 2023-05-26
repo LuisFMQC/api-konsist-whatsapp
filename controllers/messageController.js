@@ -144,12 +144,41 @@ const respostasAceitas = {
       return `Agendamento desmarcado! Caso deseje remarcar o atendimento, favor entrar em contato conosco no ${dadosCliente.rows[0].contato}.`;
     }
   },
+
+  async s(resposta, idConversa) {
+    const dadosContato = await new MessageService().getRegistroContato(
+      idConversa
+    );
+    await new MessageService().novoRegistroContato(
+      dadosContato.rows[0],
+      idConversa,
+      resposta
+    );
+    return "A clínica entrará em contato com você em breve para realizar a remarcação do seu agendamento. Muito obrigado e tenha um ótimo dia!";
+  },
+
+  async n(resposta, idConversa) {
+    const dadosContato = await new MessageService().getRegistroContato(
+      idConversa
+    );
+    await new MessageService().novoRegistroContato(
+      dadosContato.rows[0],
+      idConversa,
+      resposta
+    );
+    return "Muito obrigado pela resposta e tenha um ótimo dia!";
+  },
 };
 
 async function verifyStatus(status, idConversa, dadosCliente) {
   const statusDB = await new MessageService().getStatus(idConversa);
   const respostaAut = respostasAceitas[status];
   return respostaAut(statusDB, idConversa, dadosCliente);
+}
+
+async function verificaResposta(resposta, idConversa) {
+  const respostaAut = respostasAceitas[resposta];
+  return respostaAut(resposta, idConversa);
 }
 
 function verificaBody(req) {
@@ -181,6 +210,42 @@ async function enviaResposta(num, token, para, verifica) {
         },
       },
       headers: { "Content-Type": "application/json" },
+    });
+  } catch (e) {
+    console.log(e.message);
+  }
+}
+
+async function enviaPergunta(num, token, para, idMensagem, res) {
+  try {
+    await axios({
+      method: "POST",
+      url: `https://graph.facebook.com/v15.0/${num}/messages?access_token=${token}`,
+      data: {
+        messaging_product: "whatsapp",
+        to: para,
+        type: "template",
+        template: {
+          name: "pergunta_contato",
+          language: {
+            code: "pt_BR",
+            policy: "deterministic",
+          },
+        },
+        headers: {
+          "Content-Type": "application/json",
+        },
+      },
+    }).then(async (response) => {
+      if (res.status(200)) {
+        let id = await response.data.messages[0].id;
+        let payload = await new MessageService().getMessageById(idMensagem);
+        let contato = await new MessageService().novoRegistroContato(
+          payload.rows[0],
+          id,
+          null
+        );
+      }
     });
   } catch (e) {
     console.log(e.message);
@@ -500,35 +565,86 @@ exports.postWebhook = async (req, res, next) => {
         let from = await body.entry[0].changes[0].value.messages[0].from;
 
         if (body.entry[0].changes[0].value.messages[0].button) {
-          const status =
-            (await body.entry[0].changes[0].value.messages[0].button
-              .payload) === "Confirmar"
-              ? "c"
-              : "d";
-          const idCliente = await new MessageService().getIdCliente(
-            body.entry[0].changes[0].value.messages[0].context.id
-          );
-          const dadosCliente = idCliente.rows[0]
-            ? await new MessageService().getClienteById(
-                idCliente.rows[0].idcliente
-              )
-            : null;
-          const token =
-            dadosCliente !== null && dadosCliente.rowCount !== 0
-              ? await dadosCliente.rows[0].tokenwhatsapp
-              : null;
-
-          if (token) {
-            enviaResposta(
-              phone_number_id,
-              token,
-              from,
-              verifyStatus(
-                status,
-                req.body.entry[0].changes[0].value.messages[0].context.id,
-                dadosCliente
-              )
+          if (
+            body.entry[0].changes[0].value.messages[0].button.payload ===
+              "Confirmar" ||
+            body.entry[0].changes[0].value.messages[0].button.payload ===
+              "Desmarcar"
+          ) {
+            const status =
+              (await body.entry[0].changes[0].value.messages[0].button
+                .payload) === "Confirmar"
+                ? "c"
+                : "d";
+            const idCliente = await new MessageService().getIdCliente(
+              body.entry[0].changes[0].value.messages[0].context.id
             );
+            const dadosCliente = (await idCliente.rows[0])
+              ? await new MessageService().getClienteById(
+                  idCliente.rows[0].idcliente
+                )
+              : null;
+            const token =
+              (await dadosCliente) !== null &&
+              (await dadosCliente.rowCount) !== 0
+                ? await dadosCliente.rows[0].tokenwhatsapp
+                : null;
+
+            if (token) {
+              enviaResposta(
+                phone_number_id,
+                token,
+                from,
+                verifyStatus(
+                  status,
+                  req.body.entry[0].changes[0].value.messages[0].context.id,
+                  dadosCliente
+                )
+              );
+              if (status === "d") {
+                enviaPergunta(
+                  phone_number_id,
+                  token,
+                  from,
+                  req.body.entry[0].changes[0].value.messages[0].context.id,
+                  res
+                );
+              }
+            }
+          } else if (
+            body.entry[0].changes[0].value.messages[0].button.payload ===
+              "Sim" ||
+            body.entry[0].changes[0].value.messages[0].button.payload === "Não"
+          ) {
+            const resposta =
+              (await body.entry[0].changes[0].value.messages[0].button
+                .payload) === "Sim"
+                ? "s"
+                : "n";
+            const idCliente = await new MessageService().getIdClienteContato(
+              body.entry[0].changes[0].value.messages[0].context.id
+            );
+            const dadosCliente = (await idCliente.rows[0])
+              ? await new MessageService().getClienteById(
+                  idCliente.rows[0].idcliente
+                )
+              : null;
+            const token =
+              (await dadosCliente) !== null &&
+              (await dadosCliente.rowCount) !== 0
+                ? await dadosCliente.rows[0].tokenwhatsapp
+                : null;
+            if (token) {
+              enviaResposta(
+                phone_number_id,
+                token,
+                from,
+                verificaResposta(
+                  resposta,
+                  req.body.entry[0].changes[0].value.messages[0].context.id
+                )
+              );
+            }
           }
         } else {
           const dadosCliente =

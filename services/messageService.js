@@ -70,6 +70,10 @@ class MessageService {
     return this.repository.getIdCliente(code);
   }
 
+  async getIdClienteContato(code) {
+    return this.repository.getIdClienteContato(code);
+  }
+
   async getAllMessages(dados, idCliente) {
     return this.repository.getAllMessages(dados, idCliente);
   }
@@ -105,6 +109,26 @@ class MessageService {
       idCliente,
       code
     );
+  }
+
+  async getMessageById(idConversa) {
+    return this.repository.getMessageById(idConversa);
+  }
+
+  async getRegistroContato(idConversa) {
+    return this.repository.getRegistroContato(idConversa);
+  }
+
+  async novoRegistroContato(dadosAtendimento, code, resposta) {
+    return this.repository.postNovoRegistroContato(
+      dadosAtendimento,
+      code,
+      resposta
+    );
+  }
+
+  async atualizaRegistroContato(resposta, code) {
+    return this.repository.updateRegistroContato(resposta, code);
   }
 }
 
