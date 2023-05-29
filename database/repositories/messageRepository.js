@@ -220,7 +220,7 @@ class MessageRepository {
 
   async updateCliente(dadosCliente) {
     const query =
-      'UPDATE "agendawebcliente" SET "idtelefonewhatsapp" = $1, "tokenwhatsapp" = $2, "contato" = $3 WHERE "nome_schema" = $4';
+      'UPDATE "agendawebcliente" SET "idtelefonewhatsapp" = $1, "tokenwhatsapp" = $2, "contato" = $3, "nome" = $4 WHERE "nome_schema" = $5';
     const dados = await new Promise((resolve, reject) => {
       db.query(
         query,
@@ -228,6 +228,7 @@ class MessageRepository {
           dadosCliente.idtelefonewhatsapp,
           dadosCliente.tokenwhatsapp,
           dadosCliente.contato,
+          dadosCliente.nome,
           dadosCliente.nome_schema,
         ],
         (erro, result) => {

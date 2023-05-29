@@ -79,16 +79,24 @@ async function enviaMensagem(
 
 const respostasAceitas = {
   async c(statusDB, idConversa, dadosCliente) {
-    if (statusDB.rows[0].indstatus === null) {
-      const payload = await new MessageService().updateStatus('C', idConversa);
+    if (statusDB.rows[0].indstatus === null && !statusDB.rows[1]) {
+      const payload = await new MessageService().novoRegistro(
+        statusDB.rows[0],
+        'C',
+        idConversa,
+      );
       return 'Agendamento confirmado, obrigado.';
-    } else if (statusDB.rows[0].indstatus === 'D') {
+    } else if (statusDB.rows[1].indstatus === 'D') {
       return `Este agendamento já foi desmarcado anteriormente, impossibilitando assim sua confirmação! Caso deseje remarcar o atendimento, favor entrar em contato conosco no ${dadosCliente.rows[0].contato}.`;
     }
   },
   async d(statusDB, idConversa, dadosCliente) {
     if (statusDB.rows[0].indstatus === null) {
-      const payload = await new MessageService().updateStatus('D', idConversa);
+      const payload = await new MessageService().novoRegistro(
+        statusDB.rows[0],
+        'D',
+        idConversa,
+      );
       return `Agendamento desmarcado! Caso deseje remarcar o atendimento, favor entrar em contato conosco no ${dadosCliente.rows[0].contato}.`;
     } else if (statusDB.rows[0].indstatus === 'C') {
       const payload = await new MessageService().novoRegistro(
@@ -164,10 +172,10 @@ exports.postCliente = async (req, res, next) => {
     const testandoCliente = await new MessageService().getClienteBySchema(
       body.nome_schema,
     );
-    const id = testandoCliente.rows[0].id;
-    const schema = testandoCliente.rows[0].nome_schema;
     //verificação se o cliente já existe
     if (testandoCliente.rows[0]) {
+      const id = testandoCliente.rows[0].id;
+      const schema = testandoCliente.rows[0].nome_schema;
       //Caso o cliente exista atualizo o tokenwhatsapp e o idtelefonewhatsapp
       const updateCliente = await new MessageService().updateCliente(body);
       res
