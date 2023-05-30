@@ -18,6 +18,14 @@ class MessageService {
     );
   }
 
+  async createMessageFalha(dadosPaciente, dadosAgendamento, idCliente) {
+    return this.repository.postDadosAtendimentoFalha(
+      dadosPaciente,
+      dadosAgendamento,
+      idCliente
+    );
+  }
+
   async novoRegistro(dadosAtendimento, status, code) {
     return this.repository.postDadosAtendimentoNovoRegistro(
       dadosAtendimento,
@@ -62,8 +70,65 @@ class MessageService {
     return this.repository.getIdCliente(code);
   }
 
+  async getIdClienteContato(code) {
+    return this.repository.getIdClienteContato(code);
+  }
+
   async getAllMessages(dados, idCliente) {
     return this.repository.getAllMessages(dados, idCliente);
+  }
+
+  async getRelatorioCobranca(datas, id) {
+    return this.repository.getRelatorioCobranca(datas, id);
+  }
+
+  async getRelatorioEnvio(datas, id) {
+    return this.repository.getRelatorioEnvio(datas, id);
+  }
+
+  async getRelatorioEnvioUnico(chave, id) {
+    return this.repository.getRelatorioEnvioUnico(chave, id);
+  }
+
+  async getRelatorioFalha(datas, id) {
+    return this.repository.getRelatorioFalha(datas, id);
+  }
+
+  async getRelatorioFalhaUnico(chave, id) {
+    return this.repository.getRelatorioFalhaUnico(chave, id);
+  }
+
+  async getRegistroCobrado(idCliente, contato) {
+    return this.repository.getRegistroCobrado(idCliente, contato);
+  }
+
+  async postRegistroCobrado(dadosPaciente, dadosAgendamento, idCliente, code) {
+    return this.repository.postRegistroCobrado(
+      dadosPaciente,
+      dadosAgendamento,
+      idCliente,
+      code
+    );
+  }
+
+  async getMessageById(idConversa) {
+    return this.repository.getMessageById(idConversa);
+  }
+
+  async getRegistroContato(idConversa) {
+    return this.repository.getRegistroContato(idConversa);
+  }
+
+  async novoRegistroContato(dadosAtendimento, code, resposta) {
+    return this.repository.postNovoRegistroContato(
+      dadosAtendimento,
+      code,
+      resposta
+    );
+  }
+
+  async atualizaRegistroContato(resposta, code) {
+    return this.repository.updateRegistroContato(resposta, code);
   }
 }
 

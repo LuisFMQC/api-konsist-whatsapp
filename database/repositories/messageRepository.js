@@ -3,7 +3,7 @@ const db = require('../conexao');
 class MessageRepository {
   async getAllMessages(dadosMensagens, idCliente) {
     const query =
-      'SELECT id, chave, indstatus, idcliente FROM "confirmacaowhatsapp" WHERE "id" > $1 AND "idcliente" = $2 ORDER BY id ASC';
+      'SELECT id, chave, indstatus, idcliente FROM "confirmacaowhatsapp" WHERE "id" > $1 AND "idcliente" = $2 AND indstatus IS NOT null ORDER BY id ASC';
     const dados = await new Promise((resolve, reject) => {
       db.query(query, [dadosMensagens.id, idCliente], (erro, result) => {
         if (erro) {
@@ -12,6 +12,107 @@ class MessageRepository {
         }
         return resolve(result);
       });
+    });
+    return dados;
+  }
+
+  async getMessageById(idConversa) {
+    const query = 'SELECT * FROM "confirmacaowhatsapp" WHERE "idconversa" = $1';
+    const dados = await new Promise((resolve, reject) => {
+      db.query(query, [idConversa], (erro, result) => {
+        if (erro) {
+          console.log(erro);
+          return reject('Erro:' + erro);
+        }
+        return resolve(result);
+      });
+    });
+    return dados;
+  }
+
+  async getRelatorioEnvio(datas, id) {
+    const query =
+      'SELECT * FROM "confirmacaowhatsapp" WHERE "idcliente" = $1 AND "datainclusao" BETWEEN $2 AND $3 ORDER BY id DESC';
+    const dados = await new Promise((resolve, reject) => {
+      db.query(
+        query,
+        [id, datas.data_inicial, datas.data_final],
+        (erro, result) => {
+          if (erro) {
+            console.log(erro);
+            return reject('Erro:' + erro);
+          }
+          return resolve(result);
+        },
+      );
+    });
+    return dados;
+  }
+
+  async getRelatorioCobranca(datas, id) {
+    const query =
+      'SELECT * FROM "envioscobrados" WHERE "idcliente" = $1 AND "datainclusao" BETWEEN $2 AND $3 ORDER BY id DESC';
+    const dados = await new Promise((resolve, reject) => {
+      db.query(
+        query,
+        [id, datas.data_inicial, datas.data_final],
+        (erro, result) => {
+          if (erro) {
+            console.log(erro);
+            return reject('Erro:' + erro);
+          }
+          return resolve(result);
+        },
+      );
+    });
+    return dados;
+  }
+
+  async getRelatorioEnvioUnico(chave, id) {
+    const query =
+      'SELECT * FROM "confirmacaowhatsapp" WHERE "idcliente" = $1 AND "chave" = $2 ORDER BY id DESC';
+    const dados = await new Promise((resolve, reject) => {
+      db.query(query, [id, chave], (erro, result) => {
+        if (erro) {
+          console.log(erro);
+          return reject('Erro:' + erro);
+        }
+        return resolve(result);
+      });
+    });
+    return dados;
+  }
+
+  async getRelatorioFalhaUnico(chave, id) {
+    const query =
+      'SELECT * FROM "enviosfalha" WHERE "idcliente" = $1 AND "chave" = $2 ORDER BY id DESC';
+    const dados = await new Promise((resolve, reject) => {
+      db.query(query, [id, chave], (erro, result) => {
+        if (erro) {
+          console.log(erro);
+          return reject('Erro:' + erro);
+        }
+        return resolve(result);
+      });
+    });
+    return dados;
+  }
+
+  async getRelatorioFalha(datas, id) {
+    const query =
+      'SELECT * FROM "enviosfalha" WHERE "idcliente" = $1 AND "datainclusao" BETWEEN $2 AND $3 ORDER BY id DESC';
+    const dados = await new Promise((resolve, reject) => {
+      db.query(
+        query,
+        [id, datas.data_inicial, datas.data_final],
+        (erro, result) => {
+          if (erro) {
+            console.log(erro);
+            return reject('Erro:' + erro);
+          }
+          return resolve(result);
+        },
+      );
     });
     return dados;
   }
@@ -32,6 +133,68 @@ class MessageRepository {
     return dados;
   }
 
+  async getRegistroContato(code) {
+    const query = 'SELECT * FROM "contatorecaptacao" WHERE "idconversa" = $1';
+
+    const dados = await new Promise((resolve, reject) => {
+      db.query(query, [code], (erro, result) => {
+        if (erro) {
+          console.log(erro);
+          return reject('Erro:' + erro);
+        }
+        return resolve(result);
+      });
+    });
+
+    return dados;
+  }
+
+  async getRegistroCobrado(idCliente, contato) {
+    const interval = '24 hours';
+    const query =
+      'SELECT * FROM envioscobrados WHERE idcliente = $1 AND contato = $2 AND datainclusao >= NOW() - $3::INTERVAL';
+    const dados = await new Promise((resolve, reject) => {
+      db.query(query, [idCliente, contato, interval], (erro, result) => {
+        if (erro) {
+          console.log(erro);
+          return reject('Erro ao listar Registros!');
+        }
+        return resolve(result);
+      });
+    });
+
+    return dados;
+  }
+
+  async postRegistroCobrado(dadosPaciente, dadosAgendamento, idCliente, code) {
+    const query =
+      'INSERT INTO "envioscobrados" ( "chave", "idcliente", "contato", "data_atendimento", "hora_atendimento", "nomepaciente", "medico", "localatendimento" ) VALUES ( $1, $2, $3, $4, $5, $6, $7, $8 )';
+    const dados = await new Promise((resolve, reject) => {
+      db.query(
+        query,
+        [
+          dadosAgendamento.agendamento_chave,
+          idCliente,
+          dadosPaciente.telefone,
+          dadosAgendamento.agendamento_data,
+          dadosAgendamento.agendamento_hora,
+          dadosPaciente.paciente,
+          dadosAgendamento.agendamento_medico,
+          dadosAgendamento.empresa_unidade,
+        ],
+        (erro, result) => {
+          if (erro) {
+            console.log(erro);
+            return reject('Erro ao listar medico!');
+          }
+          return resolve(result);
+        },
+      );
+    });
+
+    return dados;
+  }
+
   async postDadosAtendimento(dadosPaciente, dadosAgendamento, idCliente, code) {
     const query =
       'INSERT INTO "confirmacaowhatsapp" ( "chave", "idcliente", "contato", "idconversa", "data_atendimento", "hora_atendimento", "nomepaciente", "medico", "localatendimento" ) VALUES ( $1, $2, $3, $4, $5, $6, $7, $8, $9 )';
@@ -43,6 +206,35 @@ class MessageRepository {
           idCliente,
           dadosPaciente.telefone,
           code,
+          dadosAgendamento.agendamento_data,
+          dadosAgendamento.agendamento_hora,
+          dadosPaciente.paciente,
+          dadosAgendamento.agendamento_medico,
+          dadosAgendamento.empresa_unidade,
+        ],
+        (erro, result) => {
+          if (erro) {
+            console.log(erro);
+            return reject('Erro ao listar medico!');
+          }
+          return resolve(result);
+        },
+      );
+    });
+
+    return dados;
+  }
+
+  async postDadosAtendimentoFalha(dadosPaciente, dadosAgendamento, idCliente) {
+    const query =
+      'INSERT INTO "enviosfalha" ( "chave", "idcliente", "contato",  "data_atendimento", "hora_atendimento", "nomepaciente", "medico", "localatendimento" ) VALUES ( $1, $2, $3, $4, $5, $6, $7, $8 )';
+    const dados = await new Promise((resolve, reject) => {
+      db.query(
+        query,
+        [
+          dadosAgendamento.agendamento_chave,
+          idCliente,
+          dadosPaciente.telefone,
           dadosAgendamento.agendamento_data,
           dadosAgendamento.agendamento_hora,
           dadosPaciente.paciente,
@@ -94,6 +286,37 @@ class MessageRepository {
     return dados;
   }
 
+  async postNovoRegistroContato(dadosAtendimento, code, resposta) {
+    const query =
+      'INSERT INTO "contatorecaptacao" ( "resposta", "chave", "idcliente", "contato", "idconversa", "data_atendimento", "hora_atendimento", "nomepaciente", "medico", "localatendimento" ) VALUES ( $1, $2, $3, $4, $5, $6, $7, $8, $9, $10)';
+    const dados = await new Promise((resolve, reject) => {
+      db.query(
+        query,
+        [
+          resposta,
+          dadosAtendimento.chave,
+          parseInt(dadosAtendimento.idcliente),
+          dadosAtendimento.contato,
+          code,
+          dadosAtendimento.data_atendimento,
+          dadosAtendimento.hora_atendimento,
+          dadosAtendimento.nomepaciente,
+          dadosAtendimento.medico,
+          dadosAtendimento.localatendimento,
+        ],
+        (erro, result) => {
+          if (erro) {
+            console.log(erro);
+            return reject('Erro ao listar medico!');
+          }
+          return resolve(result);
+        },
+      );
+    });
+
+    return dados;
+  }
+
   async updateDadosAtendimento(code, dadosAtendimento) {
     const query =
       'UPDATE "confirmacaowhatsapp" SET "idconversa" = $1 WHERE "contato" = $2 AND "chave" = $3';
@@ -109,6 +332,22 @@ class MessageRepository {
           return resolve(result);
         },
       );
+    });
+
+    return dados;
+  }
+
+  async updateRegistroContato(resposta, code) {
+    const query =
+      'UPDATE "contatorecaptacao" SET "resposta" = $1 WHERE "idconversa" = $2';
+    const dados = await new Promise((resolve, reject) => {
+      db.query(query, [resposta, code], (erro, result) => {
+        if (erro) {
+          console.log(erro);
+          return reject('Erro:' + erro);
+        }
+        return resolve(result);
+      });
     });
 
     return dados;
@@ -247,6 +486,21 @@ class MessageRepository {
   async getIdCliente(code) {
     const query =
       'SELECT "idcliente" FROM "confirmacaowhatsapp" WHERE "idconversa" = $1';
+    const dados = await new Promise((resolve, reject) => {
+      db.query(query, [code], (erro, result) => {
+        if (erro) {
+          console.log(erro);
+          return reject('Erro:' + erro);
+        }
+        return resolve(result);
+      });
+    });
+
+    return dados;
+  }
+  async getIdClienteContato(code) {
+    const query =
+      'SELECT "idcliente" FROM "contatorecaptacao" WHERE "idconversa" = $1';
     const dados = await new Promise((resolve, reject) => {
       db.query(query, [code], (erro, result) => {
         if (erro) {
