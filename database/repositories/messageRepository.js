@@ -3,7 +3,7 @@ const db = require("../conexao");
 class MessageRepository {
   async getAllMessages(dadosMensagens, idCliente) {
     const query =
-      'SELECT id, chave, indstatus, idcliente FROM "confirmacaowhatsapp" WHERE "id" > $1 AND "idcliente" = $2 AND indstatus IS NOT null ORDER BY id ASC';
+      'SELECT id, chave, indstatus, idcliente, data_atendimento, hora_atendimento, nomepaciente, id_local FROM "confirmacaowhatsapp" WHERE "id" > $1 AND "idcliente" = $2 AND indstatus IS NOT null ORDER BY id ASC';
     const dados = await new Promise((resolve, reject) => {
       db.query(query, [dadosMensagens.id, idCliente], (erro, result) => {
         if (erro) {
@@ -148,6 +148,21 @@ class MessageRepository {
 
     return dados;
   }
+  async getRegistroPesquisa(code) {
+    const query = 'SELECT * FROM "enviospesquisa" WHERE "idconversa" = $1';
+
+    const dados = await new Promise((resolve, reject) => {
+      db.query(query, [code], (erro, result) => {
+        if (erro) {
+          console.log(erro);
+          return reject("Erro:" + erro);
+        }
+        return resolve(result);
+      });
+    });
+
+    return dados;
+  }
 
   async getRegistroCobrado(idCliente, contato) {
     const interval = "24 hours";
@@ -197,7 +212,7 @@ class MessageRepository {
 
   async postDadosAtendimento(dadosPaciente, dadosAgendamento, idCliente, code) {
     const query =
-      'INSERT INTO "confirmacaowhatsapp" ( "chave", "idcliente", "contato", "idconversa", "data_atendimento", "hora_atendimento", "nomepaciente", "medico", "localatendimento" ) VALUES ( $1, $2, $3, $4, $5, $6, $7, $8, $9 )';
+      'INSERT INTO "confirmacaowhatsapp" ( "chave", "idcliente", "contato", "idconversa", "data_atendimento", "hora_atendimento", "nomepaciente", "medico", "localatendimento", "id_local" ) VALUES ( $1, $2, $3, $4, $5, $6, $7, $8, $9, $10 )';
     const dados = await new Promise((resolve, reject) => {
       db.query(
         query,
@@ -211,6 +226,43 @@ class MessageRepository {
           dadosPaciente.paciente,
           dadosAgendamento.agendamento_medico,
           dadosAgendamento.empresa_unidade,
+          dadosAgendamento.id_local,
+        ],
+        (erro, result) => {
+          if (erro) {
+            console.log(erro);
+            return reject("Erro ao listar medico!");
+          }
+          return resolve(result);
+        }
+      );
+    });
+
+    return dados;
+  }
+
+  async postDadosAtendimentoPesquisa(
+    dadosPaciente,
+    dadosAgendamento,
+    idCliente,
+    code
+  ) {
+    const query =
+      'INSERT INTO "enviospesquisa" ( "chave", "idcliente", "contato", "idconversa", "data_atendimento", "hora_atendimento", "nomepaciente", "medico", "localatendimento", "id_local" ) VALUES ( $1, $2, $3, $4, $5, $6, $7, $8, $9, $10 )';
+    const dados = await new Promise((resolve, reject) => {
+      db.query(
+        query,
+        [
+          dadosAgendamento.agendamento_chave,
+          idCliente,
+          dadosPaciente.telefone,
+          code,
+          dadosAgendamento.agendamento_data,
+          dadosAgendamento.agendamento_hora,
+          dadosPaciente.paciente,
+          dadosAgendamento.agendamento_medico,
+          dadosAgendamento.empresa_unidade,
+          dadosAgendamento.id_local,
         ],
         (erro, result) => {
           if (erro) {
@@ -256,7 +308,7 @@ class MessageRepository {
 
   async postDadosAtendimentoNovoRegistro(dadosAtendimento, status, code) {
     const query =
-      'INSERT INTO "confirmacaowhatsapp" ( "chave", "indstatus", "idcliente", "mensagem", "contato", "idconversa", "data_atendimento", "hora_atendimento", "nomepaciente", "medico", "localatendimento" ) VALUES ( $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11 )';
+      'INSERT INTO "confirmacaowhatsapp" ( "chave", "indstatus", "idcliente", "mensagem", "contato", "idconversa", "data_atendimento", "hora_atendimento", "nomepaciente", "medico", "localatendimento", "id_local" ) VALUES ( $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12 )';
     const dados = await new Promise((resolve, reject) => {
       db.query(
         query,
@@ -272,6 +324,7 @@ class MessageRepository {
           dadosAtendimento.nomepaciente,
           dadosAtendimento.medico,
           dadosAtendimento.localatendimento,
+          dadosAtendimento.id_local,
         ],
         (erro, result) => {
           if (erro) {

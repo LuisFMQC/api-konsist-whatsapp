@@ -18,6 +18,15 @@ class MessageService {
     );
   }
 
+  async createPesquisa(dadosPaciente, dadosAgendamento, idCliente, code) {
+    return this.repository.postDadosPesquisa(
+      dadosPaciente,
+      dadosAgendamento,
+      idCliente,
+      code
+    );
+  }
+
   async createMessageFalha(dadosPaciente, dadosAgendamento, idCliente) {
     return this.repository.postDadosAtendimentoFalha(
       dadosPaciente,
@@ -117,6 +126,10 @@ class MessageService {
 
   async getRegistroContato(idConversa) {
     return this.repository.getRegistroContato(idConversa);
+  }
+
+  async getRegistroPesquisa(idConversa) {
+    return this.repository.getRegistroPesquisa(idConversa);
   }
 
   async novoRegistroContato(dadosAtendimento, code, resposta) {
