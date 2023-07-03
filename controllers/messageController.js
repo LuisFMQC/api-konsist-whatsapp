@@ -24,8 +24,13 @@ async function enviaMensagem(
         type: 'template',
         template: {
           name: (await agendamento.agendamento_preparo)
+<<<<<<< HEAD
             ? 'confirmacao_preparo'
             : 'confirmacao_agendamento',
+=======
+            ? "confirmacao_preparo"
+            : "confirmacao_agendamento",
+>>>>>>> 41298847a270b3b9b244fed2490fdadb45777fe9
           language: {
             code: 'pt_BR',
             policy: 'deterministic',
@@ -114,6 +119,82 @@ async function enviaMensagem(
   }
 }
 
+async function enviaMensagemPesquisa(
+  idTelefone,
+  token,
+  idCliente,
+  body,
+  agendamento,
+  dadosCliente,
+  res
+) {
+  const [ano, mes, dia] = agendamento.agendamento_data.split("-");
+  const data = dia + "/" + mes + "/" + ano;
+  try {
+    await axios({
+      method: "POST",
+      url: `https://graph.facebook.com/v15.0/${idTelefone}/messages?access_token=${token}`,
+      data: {
+        messaging_product: "whatsapp",
+        to: body.telefone,
+        type: "template",
+        template: {
+          name: "pesquisa_de_satisfacao",
+          language: {
+            code: "pt_BR",
+            policy: "deterministic",
+          },
+          components: [
+            {
+              type: "body",
+              parameters: [
+                {
+                  type: "text",
+                  text: dadosCliente.rows[0].nome,
+                },
+              ],
+            },
+          ],
+        },
+        headers: {
+          "Content-Type": "application/json",
+        },
+      },
+    }).then(async (response) => {
+      if (res.status(200)) {
+        let id = await response.data.messages[0].id;
+        let payload = await new MessageService().createPesquisa(
+          body,
+          agendamento,
+          idCliente,
+          id
+        );
+
+        const consultaRegistroCobrado =
+          await new MessageService().getRegistroCobrado(
+            idCliente,
+            body.telefone
+          );
+        if (!consultaRegistroCobrado.rows[0]) {
+          await new MessageService().postRegistroCobrado(
+            body,
+            agendamento,
+            idCliente,
+            id
+          );
+        }
+      }
+    });
+  } catch (e) {
+    let payload = await new MessageService().createMessageFalha(
+      body,
+      agendamento,
+      idCliente
+    );
+    console.log("Error: " + e + "/ Telefone: " + body.telefone);
+  }
+}
+
 const respostasAceitas = {
   async c(statusDB, idConversa, dadosCliente) {
     if (statusDB.rows[0].indstatus === null && !statusDB.rows[1]) {
@@ -152,9 +233,38 @@ const respostasAceitas = {
     }
   },
 
+  // async s(resposta, idConversa) {
+  //   const dadosContato = await new MessageService().getRegistroContato(
+  //     idConversa
+  //   );
+  //   await new MessageService().novoRegistroContato(
+  //     dadosContato.rows[0],
+  //     idConversa,
+  //     resposta
+  //   );
+  //   return "A clínica entrará em contato com você em breve para realizar a remarcação do seu agendamento. Muito obrigado e tenha um ótimo dia!";
+  // },
+
+  // async n(resposta, idConversa) {
+  //   const dadosContato = await new MessageService().getRegistroContato(
+  //     idConversa
+  //   );
+  //   await new MessageService().novoRegistroContato(
+  //     dadosContato.rows[0],
+  //     idConversa,
+  //     resposta
+  //   );
+  //   return "Muito obrigado pela resposta e tenha um ótimo dia!";
+  // },
+
   async s(resposta, idConversa) {
+<<<<<<< HEAD
     const dadosContato = await new MessageService().getRegistroContato(
       idConversa,
+=======
+    const dadosContato = await new MessageService().getRegistroPesquisa(
+      idConversa
+>>>>>>> 41298847a270b3b9b244fed2490fdadb45777fe9
     );
     await new MessageService().novoRegistroContato(
       dadosContato.rows[0],
@@ -165,8 +275,13 @@ const respostasAceitas = {
   },
 
   async n(resposta, idConversa) {
+<<<<<<< HEAD
     const dadosContato = await new MessageService().getRegistroContato(
       idConversa,
+=======
+    const dadosContato = await new MessageService().getRegistroPesquisa(
+      idConversa
+>>>>>>> 41298847a270b3b9b244fed2490fdadb45777fe9
     );
     await new MessageService().novoRegistroContato(
       dadosContato.rows[0],
@@ -579,6 +694,90 @@ exports.postMessage = async (req, res, next) => {
   }
 };
 
+exports.postPesquisa = async (req, res, next) => {
+  try {
+    let body = await req.body;
+    let dadosCliente = await new MessageService().getClienteBySchema(
+      Array.isArray(body) ? body[0].nome_schema : body.nome_schema
+    );
+    let token = await dadosCliente.rows[0].tokenwhatsapp;
+    let idTelefone = await dadosCliente.rows[0].idtelefonewhatsapp;
+    let idCliente = await dadosCliente.rows[0].id;
+    if (res.status(200)) {
+      if (!Array.isArray(body)) {
+        body.agendamento.map(async (agendamento) => {
+          await enviaMensagem(
+            idTelefone,
+            token,
+            idCliente,
+            body,
+            agendamento,
+            dadosCliente,
+            res
+          );
+        });
+      } else {
+        try {
+          body.forEach(async (data, i) => {
+            try {
+              setTimeout(async () => {
+                try {
+                  // data.agendamento.sort(
+                  //   (a, b) => a.agendamento_chave - b.agendamento_chave
+                  // );
+                  await data.agendamento.map((agendamento, j) => {
+                    setTimeout(async () => {
+                      try {
+                        if (j !== 0) return;
+                        else
+                          await enviaMensagemPesquisa(
+                            idTelefone,
+                            token,
+                            idCliente,
+                            data,
+                            agendamento,
+                            dadosCliente,
+                            res
+                          );
+                      } catch (e) {
+                        console.log(e.message);
+                        next(e);
+                      }
+                    }, i * 1000 + j * 1000);
+                  });
+                } catch (e) {
+                  console.log(error);
+                  next(e);
+                }
+              }, i * 1000);
+            } catch (e) {
+              console.log(e.message);
+            }
+          });
+        } catch (e) {
+          console.log(e.message);
+          next(e);
+        }
+      }
+      // await enviaMensagem(
+      //   idTelefone,
+      //   token,
+      //   idCliente,
+      //   body,
+      //   dadosCliente,
+      //   res
+      // );
+    }
+    res.sendStatus(200);
+  } catch (error) {
+    console.log("Erro no PostPesquisa!");
+    res.status(400).send({
+      message: error.message,
+    });
+    next(error);
+  }
+};
+
 exports.postWebhook = async (req, res, next) => {
   try {
     let body = await req.body;
@@ -689,7 +888,12 @@ exports.postWebhook = async (req, res, next) => {
       res.sendStatus(200);
     }
   } catch (e) {
+<<<<<<< HEAD
     console.log('Error na resposta: ' + e.message);
+=======
+    console.log("Error na resposta: " + e.message);
+    // next(e);
+>>>>>>> 41298847a270b3b9b244fed2490fdadb45777fe9
     res.sendStatus(404);
   }
 };
