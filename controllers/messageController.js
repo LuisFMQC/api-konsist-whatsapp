@@ -25,7 +25,7 @@ async function enviaMensagem(
         template: {
           name: (await agendamento.agendamento_preparo)
             ? 'confirmacao_preparo'
-            : 'confirmacao_atendimento',
+            : 'confirmacao_agendamento',
           language: {
             code: 'pt_BR',
             policy: 'deterministic',
@@ -270,7 +270,27 @@ exports.get = async (req, res, next) => {
         body,
         dadosCliente.rows[0].id,
       );
-      console.log('Consultou Respostas');
+      res.status(200).send(payload.rows);
+    }
+  } catch (error) {
+    res.status(400).send({
+      message: error.message,
+    });
+    next(error);
+  }
+};
+
+exports.getSolicitacaoContato = async (req, res, next) => {
+  try {
+    const body = await req.body;
+    const dadosCliente = await new MessageService().getClienteBySchema(
+      body.nome_schema,
+    );
+    if (dadosCliente.rows[0]) {
+      const payload = await new MessageService().getSolicitacaoContato(
+        body.id,
+        dadosCliente.rows[0].id,
+      );
       res.status(200).send(payload.rows);
     }
   } catch (error) {
@@ -608,15 +628,15 @@ exports.postWebhook = async (req, res, next) => {
                   dadosCliente,
                 ),
               );
-              if (status === 'd') {
-                enviaPergunta(
-                  phone_number_id,
-                  token,
-                  from,
-                  req.body.entry[0].changes[0].value.messages[0].context.id,
-                  res,
-                );
-              }
+              // if (status === 'd') {
+              //   enviaPergunta(
+              //     phone_number_id,
+              //     token,
+              //     from,
+              //     req.body.entry[0].changes[0].value.messages[0].context.id,
+              //     res,
+              //   );
+              // }
             }
           } else if (
             body.entry[0].changes[0].value.messages[0].button.payload ===
@@ -670,7 +690,6 @@ exports.postWebhook = async (req, res, next) => {
     }
   } catch (e) {
     console.log('Error na resposta: ' + e.message);
-    next(e);
     res.sendStatus(404);
   }
 };

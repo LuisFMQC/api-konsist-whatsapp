@@ -30,6 +30,21 @@ class MessageRepository {
     return dados;
   }
 
+  async getSolicitacaoContato(id, idCliente) {
+    const query =
+      'SELECT id, chave, resposta, idcliente, datainclusao  FROM "contatorecaptacao" WHERE "id" > $1 AND "idcliente" = $2 AND "resposta" IS NOT null ORDER BY id ASC';
+    const dados = await new Promise((resolve, reject) => {
+      db.query(query, [id, idCliente], (erro, result) => {
+        if (erro) {
+          console.log(erro);
+          return reject('Erro:' + erro);
+        }
+        return resolve(result);
+      });
+    });
+    return dados;
+  }
+
   async getRelatorioEnvio(datas, id) {
     const query =
       'SELECT * FROM "confirmacaowhatsapp" WHERE "idcliente" = $1 AND "datainclusao" BETWEEN $2 AND $3 ORDER BY id DESC';
