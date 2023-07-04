@@ -24,13 +24,8 @@ async function enviaMensagem(
         type: 'template',
         template: {
           name: (await agendamento.agendamento_preparo)
-<<<<<<< HEAD
             ? 'confirmacao_preparo'
             : 'confirmacao_agendamento',
-=======
-            ? "confirmacao_preparo"
-            : "confirmacao_agendamento",
->>>>>>> 41298847a270b3b9b244fed2490fdadb45777fe9
           language: {
             code: 'pt_BR',
             policy: 'deterministic',
@@ -126,38 +121,46 @@ async function enviaMensagemPesquisa(
   body,
   agendamento,
   dadosCliente,
-  res
+  res,
 ) {
-  const [ano, mes, dia] = agendamento.agendamento_data.split("-");
-  const data = dia + "/" + mes + "/" + ano;
+  const [ano, mes, dia] = agendamento.agendamento_data.split('-');
+  const data = dia + '/' + mes + '/' + ano;
   try {
     await axios({
-      method: "POST",
+      method: 'POST',
       url: `https://graph.facebook.com/v15.0/${idTelefone}/messages?access_token=${token}`,
       data: {
-        messaging_product: "whatsapp",
+        messaging_product: 'whatsapp',
         to: body.telefone,
-        type: "template",
+        type: 'template',
         template: {
-          name: "pesquisa_de_satisfacao",
+          name: 'pesquisa_de_satisfacao',
           language: {
-            code: "pt_BR",
-            policy: "deterministic",
+            code: 'pt_BR',
+            policy: 'deterministic',
           },
           components: [
             {
-              type: "body",
+              type: 'body',
               parameters: [
                 {
-                  type: "text",
+                  type: 'text',
+                  text: body.paciente,
+                },
+                {
+                  type: 'text',
                   text: dadosCliente.rows[0].nome,
+                },
+                {
+                  type: 'text',
+                  text: data,
                 },
               ],
             },
           ],
         },
         headers: {
-          "Content-Type": "application/json",
+          'Content-Type': 'application/json',
         },
       },
     }).then(async (response) => {
@@ -167,20 +170,20 @@ async function enviaMensagemPesquisa(
           body,
           agendamento,
           idCliente,
-          id
+          id,
         );
 
         const consultaRegistroCobrado =
           await new MessageService().getRegistroCobrado(
             idCliente,
-            body.telefone
+            body.telefone,
           );
         if (!consultaRegistroCobrado.rows[0]) {
           await new MessageService().postRegistroCobrado(
             body,
             agendamento,
             idCliente,
-            id
+            id,
           );
         }
       }
@@ -189,9 +192,9 @@ async function enviaMensagemPesquisa(
     let payload = await new MessageService().createMessageFalha(
       body,
       agendamento,
-      idCliente
+      idCliente,
     );
-    console.log("Error: " + e + "/ Telefone: " + body.telefone);
+    console.log('Error: ' + e + '/ Telefone: ' + body.telefone);
   }
 }
 
@@ -233,38 +236,9 @@ const respostasAceitas = {
     }
   },
 
-  // async s(resposta, idConversa) {
-  //   const dadosContato = await new MessageService().getRegistroContato(
-  //     idConversa
-  //   );
-  //   await new MessageService().novoRegistroContato(
-  //     dadosContato.rows[0],
-  //     idConversa,
-  //     resposta
-  //   );
-  //   return "A clínica entrará em contato com você em breve para realizar a remarcação do seu agendamento. Muito obrigado e tenha um ótimo dia!";
-  // },
-
-  // async n(resposta, idConversa) {
-  //   const dadosContato = await new MessageService().getRegistroContato(
-  //     idConversa
-  //   );
-  //   await new MessageService().novoRegistroContato(
-  //     dadosContato.rows[0],
-  //     idConversa,
-  //     resposta
-  //   );
-  //   return "Muito obrigado pela resposta e tenha um ótimo dia!";
-  // },
-
   async s(resposta, idConversa) {
-<<<<<<< HEAD
     const dadosContato = await new MessageService().getRegistroContato(
       idConversa,
-=======
-    const dadosContato = await new MessageService().getRegistroPesquisa(
-      idConversa
->>>>>>> 41298847a270b3b9b244fed2490fdadb45777fe9
     );
     await new MessageService().novoRegistroContato(
       dadosContato.rows[0],
@@ -275,13 +249,8 @@ const respostasAceitas = {
   },
 
   async n(resposta, idConversa) {
-<<<<<<< HEAD
     const dadosContato = await new MessageService().getRegistroContato(
       idConversa,
-=======
-    const dadosContato = await new MessageService().getRegistroPesquisa(
-      idConversa
->>>>>>> 41298847a270b3b9b244fed2490fdadb45777fe9
     );
     await new MessageService().novoRegistroContato(
       dadosContato.rows[0],
@@ -289,6 +258,85 @@ const respostasAceitas = {
       resposta,
     );
     return 'Muito obrigado pela resposta e tenha um ótimo dia!';
+  },
+
+  async rp(resposta, idConversa) {
+    const dadosContato = await new MessageService().getRegistroPesquisa(
+      idConversa,
+    );
+    await new MessageService().novoRegistroPesquisa(
+      dadosContato.rows[0],
+      idConversa,
+      resposta,
+    );
+    await new MessageService().novoRegistroNota(
+      dadosContato.rows[0],
+      idConversa,
+      null,
+    );
+    return;
+  },
+
+  async nr(resposta, idConversa) {
+    const dadosContato = await new MessageService().getRegistroPesquisa(
+      idConversa,
+    );
+    await new MessageService().novoRegistroPesquisa(
+      dadosContato.rows[0],
+      idConversa,
+      resposta,
+    );
+    return 'Muito obrigado pela resposta e tenha um ótimo dia!';
+  },
+
+  async 1(resposta, idConversa) {
+    const dadosNota = await new MessageService().getRegistroNota(idConversa);
+    await new MessageService().novoRegistroNota(
+      dadosNota.rows[0],
+      idConversa,
+      '1',
+    );
+    return 'Obrigado por responder nossa pesquisa, sua opinião é muito importante para nós! Tenha um excelente dia!';
+  },
+
+  async 2(resposta, idConversa) {
+    const dadosNota = await new MessageService().getRegistroNota(idConversa);
+    await new MessageService().novoRegistroNota(
+      dadosNota.rows[0],
+      idConversa,
+      '2',
+    );
+    return 'Obrigado por responder nossa pesquisa, sua opinião é muito importante para nós! Tenha um excelente dia!';
+  },
+
+  async 3(resposta, idConversa) {
+    const dadosNota = await new MessageService().getRegistroNota(idConversa);
+    await new MessageService().novoRegistroNota(
+      dadosNota.rows[0],
+      idConversa,
+      '3',
+    );
+    return 'Obrigado por responder nossa pesquisa, sua opinião é muito importante para nós! Tenha um excelente dia!';
+  },
+
+  async 4(resposta, idConversa) {
+    const dadosNota = await new MessageService().getRegistroNota(idConversa);
+    await new MessageService().novoRegistroNota(
+      dadosNota.rows[0],
+      idConversa,
+      '4',
+    );
+    return 'Obrigado por responder nossa pesquisa, sua opinião é muito importante para nós! Tenha um excelente dia!';
+  },
+
+  async 5(resposta, idConversa) {
+    const dadosNota = await new MessageService().getRegistroNota(idConversa);
+    await new MessageService().novoRegistroNota(
+      dadosNota.rows[0],
+      idConversa,
+      '5',
+    );
+    return 'Obrigado por responder nossa pesquisa, sua opinião é muito importante para nós! Tenha um excelente dia!';
   },
 };
 
@@ -373,6 +421,83 @@ async function enviaPergunta(num, token, para, idMensagem, res) {
     console.log(e.message);
   }
 }
+async function enviaPesquisa(num, token, para, idMensagem, res) {
+  try {
+    await axios({
+      method: 'POST',
+      url: `https://graph.facebook.com/v15.0/${num}/messages?access_token=${token}`,
+      data: {
+        messaging_product: 'whatsapp',
+        recipient_type: 'individual',
+        to: para,
+        type: 'interactive',
+        interactive: {
+          type: 'list',
+          header: {
+            type: 'text',
+            text: 'Pesquisa de Satisfação',
+          },
+          body: {
+            text: "Selecione uma nota clicando no botão 'Dar nota' abaixo.",
+          },
+
+          action: {
+            button: 'Dar nota',
+            sections: [
+              {
+                title: 'Selecione uma nota:',
+                rows: [
+                  {
+                    id: '1',
+                    title: 'Péssimo',
+                    description: '1',
+                  },
+                  {
+                    id: '2',
+                    title: 'Ruim',
+                    description: '2',
+                  },
+                  {
+                    id: '3',
+                    title: 'Bom',
+                    description: '3',
+                  },
+                  {
+                    id: '4',
+                    title: 'Ótimo',
+                    description: '4',
+                  },
+                  {
+                    id: '5',
+                    title: 'Excelente',
+                    description: '5',
+                  },
+                ],
+              },
+            ],
+          },
+        },
+      },
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    }).then(async (response) => {
+      if (res.status(200)) {
+        let id = await response.data.messages[0].id;
+        let payload = await new MessageService().getMessageByIdPesquisa(
+          idMensagem,
+        );
+        let contato = await new MessageService().novoRegistroNota(
+          payload.rows[0],
+          id,
+          null,
+        );
+      }
+    });
+  } catch (e) {
+    console.log(e.message);
+  }
+}
 
 exports.get = async (req, res, next) => {
   try {
@@ -382,6 +507,26 @@ exports.get = async (req, res, next) => {
     );
     if (dadosCliente.rows[0]) {
       const payload = await new MessageService().getAllMessages(
+        body,
+        dadosCliente.rows[0].id,
+      );
+      res.status(200).send(payload.rows);
+    }
+  } catch (error) {
+    res.status(400).send({
+      message: error.message,
+    });
+    next(error);
+  }
+};
+exports.getPesquisa = async (req, res, next) => {
+  try {
+    const body = await req.body;
+    const dadosCliente = await new MessageService().getClienteBySchema(
+      body.nome_schema,
+    );
+    if (dadosCliente.rows[0]) {
+      const payload = await new MessageService().getAllNotas(
         body,
         dadosCliente.rows[0].id,
       );
@@ -698,7 +843,7 @@ exports.postPesquisa = async (req, res, next) => {
   try {
     let body = await req.body;
     let dadosCliente = await new MessageService().getClienteBySchema(
-      Array.isArray(body) ? body[0].nome_schema : body.nome_schema
+      Array.isArray(body) ? body[0].nome_schema : body.nome_schema,
     );
     let token = await dadosCliente.rows[0].tokenwhatsapp;
     let idTelefone = await dadosCliente.rows[0].idtelefonewhatsapp;
@@ -706,14 +851,14 @@ exports.postPesquisa = async (req, res, next) => {
     if (res.status(200)) {
       if (!Array.isArray(body)) {
         body.agendamento.map(async (agendamento) => {
-          await enviaMensagem(
+          await enviaMensagemPesquisa(
             idTelefone,
             token,
             idCliente,
             body,
             agendamento,
             dadosCliente,
-            res
+            res,
           );
         });
       } else {
@@ -725,26 +870,26 @@ exports.postPesquisa = async (req, res, next) => {
                   // data.agendamento.sort(
                   //   (a, b) => a.agendamento_chave - b.agendamento_chave
                   // );
-                  await data.agendamento.map((agendamento, j) => {
-                    setTimeout(async () => {
-                      try {
-                        if (j !== 0) return;
-                        else
-                          await enviaMensagemPesquisa(
-                            idTelefone,
-                            token,
-                            idCliente,
-                            data,
-                            agendamento,
-                            dadosCliente,
-                            res
-                          );
-                      } catch (e) {
-                        console.log(e.message);
-                        next(e);
-                      }
-                    }, i * 1000 + j * 1000);
-                  });
+                  // await data.agendamento.map((agendamento, j) => {
+                  //   setTimeout(async () => {
+                  //     try {
+                  // if (j !== 0) return;
+                  // else
+                  await enviaMensagemPesquisa(
+                    idTelefone,
+                    token,
+                    idCliente,
+                    data,
+                    data.agendamento[0],
+                    dadosCliente,
+                    res,
+                  );
+                  //     } catch (e) {
+                  //       console.log(e.message);
+                  //       next(e);
+                  //     }
+                  //   }, i * 1000 + j * 1000);
+                  // });
                 } catch (e) {
                   console.log(error);
                   next(e);
@@ -770,7 +915,7 @@ exports.postPesquisa = async (req, res, next) => {
     }
     res.sendStatus(200);
   } catch (error) {
-    console.log("Erro no PostPesquisa!");
+    console.log('Erro no PostPesquisa!');
     res.status(400).send({
       message: error.message,
     });
@@ -782,7 +927,7 @@ exports.postWebhook = async (req, res, next) => {
   try {
     let body = await req.body;
 
-    // console.log(JSON.stringify(body, null, 2));
+    console.log(JSON.stringify(body, null, 2));
 
     if (body.object) {
       if (verificaBody(req)) {
@@ -871,6 +1016,91 @@ exports.postWebhook = async (req, res, next) => {
                 ),
               );
             }
+          } else if (
+            body.entry[0].changes[0].value.messages[0].button.payload ===
+              'Responder pesquisa' ||
+            body.entry[0].changes[0].value.messages[0].button.payload ===
+              'Não responder'
+          ) {
+            const resposta =
+              (await body.entry[0].changes[0].value.messages[0].button
+                .payload) === 'Responder pesquisa'
+                ? 'rp'
+                : 'nr';
+            console.log(resposta);
+            const idCliente = await new MessageService().getIdClientePesquisa(
+              body.entry[0].changes[0].value.messages[0].context.id,
+            );
+            const dadosCliente = (await idCliente.rows[0])
+              ? await new MessageService().getClienteById(
+                  idCliente.rows[0].idcliente,
+                )
+              : null;
+            const token =
+              (await dadosCliente) !== null &&
+              (await dadosCliente.rowCount) !== 0
+                ? await dadosCliente.rows[0].tokenwhatsapp
+                : null;
+            if (token) {
+              enviaResposta(
+                phone_number_id,
+                token,
+                from,
+                verificaResposta(
+                  resposta,
+                  req.body.entry[0].changes[0].value.messages[0].context.id,
+                ),
+              );
+              if (resposta === 'rp') {
+                enviaPesquisa(
+                  phone_number_id,
+                  token,
+                  from,
+                  req.body.entry[0].changes[0].value.messages[0].context.id,
+                  res,
+                );
+              }
+            }
+          }
+        } else if (body.entry[0].changes[0].value.messages[0].interactive) {
+          if (
+            body.entry[0].changes[0].value.messages[0].interactive.list_reply
+              .id === '1' ||
+            body.entry[0].changes[0].value.messages[0].interactive.list_reply
+              .id === '2' ||
+            body.entry[0].changes[0].value.messages[0].interactive.list_reply
+              .id === '3' ||
+            body.entry[0].changes[0].value.messages[0].interactive.list_reply
+              .id === '4' ||
+            body.entry[0].changes[0].value.messages[0].interactive.list_reply
+              .id === '5'
+          ) {
+            const resposta = await body.entry[0].changes[0].value.messages[0]
+              .interactive.list_reply.id;
+            const idCliente = await new MessageService().getIdClienteNota(
+              body.entry[0].changes[0].value.messages[0].context.id,
+            );
+            const dadosCliente = (await idCliente.rows[0])
+              ? await new MessageService().getClienteById(
+                  idCliente.rows[0].idcliente,
+                )
+              : null;
+            const token =
+              (await dadosCliente) !== null &&
+              (await dadosCliente.rowCount) !== 0
+                ? await dadosCliente.rows[0].tokenwhatsapp
+                : null;
+            if (token) {
+              enviaResposta(
+                phone_number_id,
+                token,
+                from,
+                verificaResposta(
+                  resposta,
+                  req.body.entry[0].changes[0].value.messages[0].context.id,
+                ),
+              );
+            }
           }
         } else {
           const dadosCliente =
@@ -885,15 +1115,11 @@ exports.postWebhook = async (req, res, next) => {
           }
         }
       }
-      res.sendStatus(200);
     }
+    res.sendStatus(200);
   } catch (e) {
-<<<<<<< HEAD
     console.log('Error na resposta: ' + e.message);
-=======
-    console.log("Error na resposta: " + e.message);
     // next(e);
->>>>>>> 41298847a270b3b9b244fed2490fdadb45777fe9
     res.sendStatus(404);
   }
 };

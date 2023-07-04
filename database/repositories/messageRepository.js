@@ -15,9 +15,36 @@ class MessageRepository {
     });
     return dados;
   }
+  async getAllNotas(dadosMensagens, idCliente) {
+    const query =
+      'SELECT id, chave, idcliente, nota FROM "pesquisa_satisfacao" WHERE "id" > $1 AND "idcliente" = $2 AND nota IS NOT null ORDER BY id ASC';
+    const dados = await new Promise((resolve, reject) => {
+      db.query(query, [dadosMensagens.id, idCliente], (erro, result) => {
+        if (erro) {
+          console.log(erro);
+          return reject('Erro:' + erro);
+        }
+        return resolve(result);
+      });
+    });
+    return dados;
+  }
 
   async getMessageById(idConversa) {
     const query = 'SELECT * FROM "confirmacaowhatsapp" WHERE "idconversa" = $1';
+    const dados = await new Promise((resolve, reject) => {
+      db.query(query, [idConversa], (erro, result) => {
+        if (erro) {
+          console.log(erro);
+          return reject('Erro:' + erro);
+        }
+        return resolve(result);
+      });
+    });
+    return dados;
+  }
+  async getMessageByIdPesquisa(idConversa) {
+    const query = 'SELECT * FROM "enviospesquisa" WHERE "idconversa" = $1';
     const dados = await new Promise((resolve, reject) => {
       db.query(query, [idConversa], (erro, result) => {
         if (erro) {
@@ -170,7 +197,23 @@ class MessageRepository {
       db.query(query, [code], (erro, result) => {
         if (erro) {
           console.log(erro);
-          return reject("Erro:" + erro);
+          return reject('Erro:' + erro);
+        }
+        return resolve(result);
+      });
+    });
+
+    return dados;
+  }
+
+  async getRegistroNota(code) {
+    const query = 'SELECT * FROM "pesquisa_satisfacao" WHERE "idconversa" = $1';
+
+    const dados = await new Promise((resolve, reject) => {
+      db.query(query, [code], (erro, result) => {
+        if (erro) {
+          console.log(erro);
+          return reject('Erro:' + erro);
         }
         return resolve(result);
       });
@@ -246,10 +289,10 @@ class MessageRepository {
         (erro, result) => {
           if (erro) {
             console.log(erro);
-            return reject("Erro ao listar medico!");
+            return reject('Erro ao listar medico!');
           }
           return resolve(result);
-        }
+        },
       );
     });
 
@@ -260,10 +303,10 @@ class MessageRepository {
     dadosPaciente,
     dadosAgendamento,
     idCliente,
-    code
+    code,
   ) {
     const query =
-      'INSERT INTO "enviospesquisa" ( "chave", "idcliente", "contato", "idconversa", "data_atendimento", "hora_atendimento", "nomepaciente", "medico", "localatendimento", "id_local" ) VALUES ( $1, $2, $3, $4, $5, $6, $7, $8, $9, $10 )';
+      'INSERT INTO "enviospesquisa" ( "chave", "idcliente", "contato", "idconversa", "data_atendimento", "hora_atendimento", "nomepaciente", "medico", "localatendimento" ) VALUES ( $1, $2, $3, $4, $5, $6, $7, $8, $9 )';
     const dados = await new Promise((resolve, reject) => {
       db.query(
         query,
@@ -277,7 +320,6 @@ class MessageRepository {
           dadosPaciente.paciente,
           dadosAgendamento.agendamento_medico,
           dadosAgendamento.empresa_unidade,
-          dadosAgendamento.id_local,
         ],
         (erro, result) => {
           if (erro) {
@@ -357,6 +399,62 @@ class MessageRepository {
   async postNovoRegistroContato(dadosAtendimento, code, resposta) {
     const query =
       'INSERT INTO "contatorecaptacao" ( "resposta", "chave", "idcliente", "contato", "idconversa", "data_atendimento", "hora_atendimento", "nomepaciente", "medico", "localatendimento" ) VALUES ( $1, $2, $3, $4, $5, $6, $7, $8, $9, $10)';
+    const dados = await new Promise((resolve, reject) => {
+      db.query(
+        query,
+        [
+          resposta,
+          dadosAtendimento.chave,
+          parseInt(dadosAtendimento.idcliente),
+          dadosAtendimento.contato,
+          code,
+          dadosAtendimento.data_atendimento,
+          dadosAtendimento.hora_atendimento,
+          dadosAtendimento.nomepaciente,
+          dadosAtendimento.medico,
+          dadosAtendimento.localatendimento,
+        ],
+        (erro, result) => {
+          if (erro) {
+            console.log(erro);
+            return reject('Erro ao listar medico!');
+          }
+          return resolve(result);
+        },
+      );
+    });
+
+    return dados;
+  }
+  async postNovoRegistroNota(dadosAtendimento, code, nota) {
+    const query =
+      'INSERT INTO "pesquisa_satisfacao" ( "chave", "idcliente", "contato", "idconversa", "nota", "nomepaciente") VALUES ( $1, $2, $3, $4, $5, $6)';
+    const dados = await new Promise((resolve, reject) => {
+      db.query(
+        query,
+        [
+          dadosAtendimento.chave,
+          parseInt(dadosAtendimento.idcliente),
+          dadosAtendimento.contato,
+          code,
+          nota,
+          dadosAtendimento.nomepaciente,
+        ],
+        (erro, result) => {
+          if (erro) {
+            console.log(erro);
+            return reject('Erro ao listar medico!');
+          }
+          return resolve(result);
+        },
+      );
+    });
+
+    return dados;
+  }
+  async postNovoRegistroPesquisa(dadosAtendimento, code, resposta) {
+    const query =
+      'INSERT INTO "enviospesquisa" ( "resposta", "chave", "idcliente", "contato", "idconversa", "data_atendimento", "hora_atendimento", "nomepaciente", "medico", "localatendimento" ) VALUES ( $1, $2, $3, $4, $5, $6, $7, $8, $9, $10)';
     const dados = await new Promise((resolve, reject) => {
       db.query(
         query,
@@ -569,6 +667,37 @@ class MessageRepository {
   async getIdClienteContato(code) {
     const query =
       'SELECT "idcliente" FROM "contatorecaptacao" WHERE "idconversa" = $1';
+    const dados = await new Promise((resolve, reject) => {
+      db.query(query, [code], (erro, result) => {
+        if (erro) {
+          console.log(erro);
+          return reject('Erro:' + erro);
+        }
+        return resolve(result);
+      });
+    });
+
+    return dados;
+  }
+
+  async getIdClientePesquisa(code) {
+    const query =
+      'SELECT "idcliente" FROM "enviospesquisa" WHERE "idconversa" = $1';
+    const dados = await new Promise((resolve, reject) => {
+      db.query(query, [code], (erro, result) => {
+        if (erro) {
+          console.log(erro);
+          return reject('Erro:' + erro);
+        }
+        return resolve(result);
+      });
+    });
+
+    return dados;
+  }
+  async getIdClienteNota(code) {
+    const query =
+      'SELECT "idcliente" FROM "pesquisa_satisfacao" WHERE "idconversa" = $1';
     const dados = await new Promise((resolve, reject) => {
       db.query(query, [code], (erro, result) => {
         if (erro) {

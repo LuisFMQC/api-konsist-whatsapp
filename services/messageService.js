@@ -19,11 +19,11 @@ class MessageService {
   }
 
   async createPesquisa(dadosPaciente, dadosAgendamento, idCliente, code) {
-    return this.repository.postDadosPesquisa(
+    return this.repository.postDadosAtendimentoPesquisa(
       dadosPaciente,
       dadosAgendamento,
       idCliente,
-      code
+      code,
     );
   }
 
@@ -83,8 +83,20 @@ class MessageService {
     return this.repository.getIdClienteContato(code);
   }
 
+  async getIdClientePesquisa(code) {
+    return this.repository.getIdClientePesquisa(code);
+  }
+
+  async getIdClienteNota(code) {
+    return this.repository.getIdClienteNota(code);
+  }
+
   async getAllMessages(dados, idCliente) {
     return this.repository.getAllMessages(dados, idCliente);
+  }
+
+  async getAllNotas(dados, idCliente) {
+    return this.repository.getAllNotas(dados, idCliente);
   }
 
   async getSolicitacaoContato(id, idCliente) {
@@ -128,6 +140,10 @@ class MessageService {
     return this.repository.getMessageById(idConversa);
   }
 
+  async getMessageByIdPesquisa(idConversa) {
+    return this.repository.getMessageByIdPesquisa(idConversa);
+  }
+
   async getRegistroContato(idConversa) {
     return this.repository.getRegistroContato(idConversa);
   }
@@ -136,8 +152,28 @@ class MessageService {
     return this.repository.getRegistroPesquisa(idConversa);
   }
 
+  async getRegistroNota(idConversa) {
+    return this.repository.getRegistroNota(idConversa);
+  }
+
   async novoRegistroContato(dadosAtendimento, code, resposta) {
     return this.repository.postNovoRegistroContato(
+      dadosAtendimento,
+      code,
+      resposta,
+    );
+  }
+
+  async novoRegistroPesquisa(dadosAtendimento, code, resposta) {
+    return this.repository.postNovoRegistroPesquisa(
+      dadosAtendimento,
+      code,
+      resposta,
+    );
+  }
+
+  async novoRegistroNota(dadosAtendimento, code, resposta) {
+    return this.repository.postNovoRegistroNota(
       dadosAtendimento,
       code,
       resposta,
