@@ -1,4 +1,4 @@
-const MessageRepository = require('../database/repositories/messageRepository');
+const MessageRepository = require("../database/repositories/messageRepository");
 
 class MessageService {
   constructor() {
@@ -14,7 +14,16 @@ class MessageService {
       dadosPaciente,
       dadosAgendamento,
       idCliente,
-      code,
+      code
+    );
+  }
+
+  async createAvisoBloqueio(dadosPaciente, dadosAgendamento, idCliente, code) {
+    return this.repository.postDadosAvisoBloqueio(
+      dadosPaciente,
+      dadosAgendamento,
+      idCliente,
+      code
     );
   }
 
@@ -23,7 +32,7 @@ class MessageService {
       dadosPaciente,
       dadosAgendamento,
       idCliente,
-      code,
+      code
     );
   }
 
@@ -31,7 +40,7 @@ class MessageService {
     return this.repository.postDadosAtendimentoFalha(
       dadosPaciente,
       dadosAgendamento,
-      idCliente,
+      idCliente
     );
   }
 
@@ -39,7 +48,7 @@ class MessageService {
     return this.repository.postDadosAtendimentoNovoRegistro(
       dadosAtendimento,
       status,
-      code,
+      code
     );
   }
 
@@ -132,7 +141,7 @@ class MessageService {
       dadosPaciente,
       dadosAgendamento,
       idCliente,
-      code,
+      code
     );
   }
 
@@ -160,7 +169,7 @@ class MessageService {
     return this.repository.postNovoRegistroContato(
       dadosAtendimento,
       code,
-      resposta,
+      resposta
     );
   }
 
@@ -168,7 +177,7 @@ class MessageService {
     return this.repository.postNovoRegistroPesquisa(
       dadosAtendimento,
       code,
-      resposta,
+      resposta
     );
   }
 
@@ -176,7 +185,7 @@ class MessageService {
     return this.repository.postNovoRegistroNota(
       dadosAtendimento,
       code,
-      resposta,
+      resposta
     );
   }
 

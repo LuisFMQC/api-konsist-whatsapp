@@ -1,4 +1,4 @@
-const db = require('../conexao');
+const db = require("../conexao");
 
 class MessageRepository {
   async getAllMessages(dadosMensagens, idCliente) {
@@ -8,7 +8,7 @@ class MessageRepository {
       db.query(query, [dadosMensagens.id, idCliente], (erro, result) => {
         if (erro) {
           console.log(erro);
-          return reject('Erro:' + erro);
+          return reject("Erro:" + erro);
         }
         return resolve(result);
       });
@@ -22,7 +22,7 @@ class MessageRepository {
       db.query(query, [dadosMensagens.id, idCliente], (erro, result) => {
         if (erro) {
           console.log(erro);
-          return reject('Erro:' + erro);
+          return reject("Erro:" + erro);
         }
         return resolve(result);
       });
@@ -36,7 +36,7 @@ class MessageRepository {
       db.query(query, [idConversa], (erro, result) => {
         if (erro) {
           console.log(erro);
-          return reject('Erro:' + erro);
+          return reject("Erro:" + erro);
         }
         return resolve(result);
       });
@@ -49,7 +49,7 @@ class MessageRepository {
       db.query(query, [idConversa], (erro, result) => {
         if (erro) {
           console.log(erro);
-          return reject('Erro:' + erro);
+          return reject("Erro:" + erro);
         }
         return resolve(result);
       });
@@ -64,7 +64,7 @@ class MessageRepository {
       db.query(query, [id, idCliente], (erro, result) => {
         if (erro) {
           console.log(erro);
-          return reject('Erro:' + erro);
+          return reject("Erro:" + erro);
         }
         return resolve(result);
       });
@@ -82,10 +82,10 @@ class MessageRepository {
         (erro, result) => {
           if (erro) {
             console.log(erro);
-            return reject('Erro:' + erro);
+            return reject("Erro:" + erro);
           }
           return resolve(result);
-        },
+        }
       );
     });
     return dados;
@@ -101,10 +101,10 @@ class MessageRepository {
         (erro, result) => {
           if (erro) {
             console.log(erro);
-            return reject('Erro:' + erro);
+            return reject("Erro:" + erro);
           }
           return resolve(result);
-        },
+        }
       );
     });
     return dados;
@@ -117,7 +117,7 @@ class MessageRepository {
       db.query(query, [id, chave], (erro, result) => {
         if (erro) {
           console.log(erro);
-          return reject('Erro:' + erro);
+          return reject("Erro:" + erro);
         }
         return resolve(result);
       });
@@ -132,7 +132,7 @@ class MessageRepository {
       db.query(query, [id, chave], (erro, result) => {
         if (erro) {
           console.log(erro);
-          return reject('Erro:' + erro);
+          return reject("Erro:" + erro);
         }
         return resolve(result);
       });
@@ -150,10 +150,10 @@ class MessageRepository {
         (erro, result) => {
           if (erro) {
             console.log(erro);
-            return reject('Erro:' + erro);
+            return reject("Erro:" + erro);
           }
           return resolve(result);
-        },
+        }
       );
     });
     return dados;
@@ -166,7 +166,7 @@ class MessageRepository {
       db.query(query, [code], (erro, result) => {
         if (erro) {
           console.log(erro);
-          return reject('Erro:' + erro);
+          return reject("Erro:" + erro);
         }
         return resolve(result);
       });
@@ -182,7 +182,7 @@ class MessageRepository {
       db.query(query, [code], (erro, result) => {
         if (erro) {
           console.log(erro);
-          return reject('Erro:' + erro);
+          return reject("Erro:" + erro);
         }
         return resolve(result);
       });
@@ -197,7 +197,7 @@ class MessageRepository {
       db.query(query, [code], (erro, result) => {
         if (erro) {
           console.log(erro);
-          return reject('Erro:' + erro);
+          return reject("Erro:" + erro);
         }
         return resolve(result);
       });
@@ -213,7 +213,7 @@ class MessageRepository {
       db.query(query, [code], (erro, result) => {
         if (erro) {
           console.log(erro);
-          return reject('Erro:' + erro);
+          return reject("Erro:" + erro);
         }
         return resolve(result);
       });
@@ -223,14 +223,14 @@ class MessageRepository {
   }
 
   async getRegistroCobrado(idCliente, contato) {
-    const interval = '24 hours';
+    const interval = "24 hours";
     const query =
-      'SELECT * FROM envioscobrados WHERE idcliente = $1 AND contato = $2 AND datainclusao >= NOW() - $3::INTERVAL';
+      "SELECT * FROM envioscobrados WHERE idcliente = $1 AND contato = $2 AND datainclusao >= NOW() - $3::INTERVAL";
     const dados = await new Promise((resolve, reject) => {
       db.query(query, [idCliente, contato, interval], (erro, result) => {
         if (erro) {
           console.log(erro);
-          return reject('Erro ao listar Registros!');
+          return reject("Erro ao listar Registros!");
         }
         return resolve(result);
       });
@@ -258,10 +258,10 @@ class MessageRepository {
         (erro, result) => {
           if (erro) {
             console.log(erro);
-            return reject('Erro ao listar medico!');
+            return reject("Erro ao listar medico!");
           }
           return resolve(result);
-        },
+        }
       );
     });
 
@@ -289,21 +289,55 @@ class MessageRepository {
         (erro, result) => {
           if (erro) {
             console.log(erro);
-            return reject('Erro ao listar medico!');
+            return reject("Erro ao listar medico!");
           }
           return resolve(result);
-        },
+        }
       );
     });
 
     return dados;
   }
 
+  async postDadosAvisoBloqueio(
+    dadosPaciente,
+    dadosAgendamento,
+    idCliente,
+    code
+  ) {
+    const query =
+      'INSERT INTO "avisobloqueio" ( "chave", "idcliente", "contato", "idconversa", "data_atendimento", "hora_atendimento", "nomepaciente", "medico", "localatendimento" ) VALUES ( $1, $2, $3, $4, $5, $6, $7, $8, $9 )';
+    const dados = await new Promise((resolve, reject) => {
+      db.query(
+        query,
+        [
+          dadosAgendamento.agendamento_chave,
+          idCliente,
+          dadosPaciente.telefone,
+          code,
+          dadosAgendamento.agendamento_data,
+          dadosAgendamento.agendamento_hora,
+          dadosPaciente.paciente,
+          dadosAgendamento.agendamento_medico,
+          dadosAgendamento.empresa_unidade,
+        ],
+        (erro, result) => {
+          if (erro) {
+            console.log(erro);
+            return reject("Erro ao listar medico!");
+          }
+          return resolve(result);
+        }
+      );
+    });
+
+    return dados;
+  }
   async postDadosAtendimentoPesquisa(
     dadosPaciente,
     dadosAgendamento,
     idCliente,
-    code,
+    code
   ) {
     const query =
       'INSERT INTO "enviospesquisa" ( "chave", "idcliente", "contato", "idconversa", "data_atendimento", "hora_atendimento", "nomepaciente", "medico", "localatendimento" ) VALUES ( $1, $2, $3, $4, $5, $6, $7, $8, $9 )';
@@ -324,10 +358,10 @@ class MessageRepository {
         (erro, result) => {
           if (erro) {
             console.log(erro);
-            return reject('Erro ao listar medico!');
+            return reject("Erro ao listar medico!");
           }
           return resolve(result);
-        },
+        }
       );
     });
 
@@ -353,10 +387,10 @@ class MessageRepository {
         (erro, result) => {
           if (erro) {
             console.log(erro);
-            return reject('Erro ao listar medico!');
+            return reject("Erro ao listar medico!");
           }
           return resolve(result);
-        },
+        }
       );
     });
 
@@ -386,10 +420,10 @@ class MessageRepository {
         (erro, result) => {
           if (erro) {
             console.log(erro);
-            return reject('Erro ao listar medico!');
+            return reject("Erro ao listar medico!");
           }
           return resolve(result);
-        },
+        }
       );
     });
 
@@ -417,10 +451,10 @@ class MessageRepository {
         (erro, result) => {
           if (erro) {
             console.log(erro);
-            return reject('Erro ao listar medico!');
+            return reject("Erro ao listar medico!");
           }
           return resolve(result);
-        },
+        }
       );
     });
 
@@ -443,10 +477,10 @@ class MessageRepository {
         (erro, result) => {
           if (erro) {
             console.log(erro);
-            return reject('Erro ao listar medico!');
+            return reject("Erro ao listar medico!");
           }
           return resolve(result);
-        },
+        }
       );
     });
 
@@ -473,10 +507,10 @@ class MessageRepository {
         (erro, result) => {
           if (erro) {
             console.log(erro);
-            return reject('Erro ao listar medico!');
+            return reject("Erro ao listar medico!");
           }
           return resolve(result);
-        },
+        }
       );
     });
 
@@ -493,10 +527,10 @@ class MessageRepository {
         (erro, result) => {
           if (erro) {
             console.log(erro);
-            return reject('Erro:' + erro);
+            return reject("Erro:" + erro);
           }
           return resolve(result);
-        },
+        }
       );
     });
 
@@ -510,7 +544,7 @@ class MessageRepository {
       db.query(query, [resposta, code], (erro, result) => {
         if (erro) {
           console.log(erro);
-          return reject('Erro:' + erro);
+          return reject("Erro:" + erro);
         }
         return resolve(result);
       });
@@ -526,7 +560,7 @@ class MessageRepository {
       db.query(query, [status, code], (erro, result) => {
         if (erro) {
           console.log(erro);
-          return reject('Erro:' + erro);
+          return reject("Erro:" + erro);
         }
         return resolve(result);
       });
@@ -541,7 +575,7 @@ class MessageRepository {
       db.query(query, [code], (erro, result) => {
         if (erro) {
           console.log(erro);
-          return reject('Erro:' + erro);
+          return reject("Erro:" + erro);
         }
         return resolve(result);
       });
@@ -557,7 +591,7 @@ class MessageRepository {
       db.query(query, [code], (erro, result) => {
         if (erro) {
           console.log(erro);
-          return reject('Erro:' + erro);
+          return reject("Erro:" + erro);
         }
         return resolve(result);
       });
@@ -572,7 +606,7 @@ class MessageRepository {
       db.query(query, [schema], (erro, result) => {
         if (erro) {
           console.log(erro);
-          return reject('Erro:' + erro);
+          return reject("Erro:" + erro);
         }
         return resolve(result);
       });
@@ -587,7 +621,7 @@ class MessageRepository {
       db.query(query, [code], (erro, result) => {
         if (erro) {
           console.log(erro);
-          return reject('Erro:' + erro);
+          return reject("Erro:" + erro);
         }
         return resolve(result);
       });
@@ -613,10 +647,10 @@ class MessageRepository {
         (erro, result) => {
           if (erro) {
             console.log(erro);
-            return reject('Erro:' + erro);
+            return reject("Erro:" + erro);
           }
           return resolve(result);
-        },
+        }
       );
     });
 
@@ -639,10 +673,10 @@ class MessageRepository {
         (erro, result) => {
           if (erro) {
             console.log(erro);
-            return reject('Erro:' + erro);
+            return reject("Erro:" + erro);
           }
           return resolve(result);
-        },
+        }
       );
     });
 
@@ -656,7 +690,7 @@ class MessageRepository {
       db.query(query, [code], (erro, result) => {
         if (erro) {
           console.log(erro);
-          return reject('Erro:' + erro);
+          return reject("Erro:" + erro);
         }
         return resolve(result);
       });
@@ -671,7 +705,7 @@ class MessageRepository {
       db.query(query, [code], (erro, result) => {
         if (erro) {
           console.log(erro);
-          return reject('Erro:' + erro);
+          return reject("Erro:" + erro);
         }
         return resolve(result);
       });
@@ -687,7 +721,7 @@ class MessageRepository {
       db.query(query, [code], (erro, result) => {
         if (erro) {
           console.log(erro);
-          return reject('Erro:' + erro);
+          return reject("Erro:" + erro);
         }
         return resolve(result);
       });
@@ -702,7 +736,7 @@ class MessageRepository {
       db.query(query, [code], (erro, result) => {
         if (erro) {
           console.log(erro);
-          return reject('Erro:' + erro);
+          return reject("Erro:" + erro);
         }
         return resolve(result);
       });
