@@ -3,7 +3,7 @@ const db = require("../conexao");
 class MessageRepository {
   async getAllMessages(dadosMensagens, idCliente) {
     const query =
-      'SELECT id, chave, indstatus, idcliente, data_atendimento, hora_atendimento, nomepaciente, id_local FROM "confirmacaowhatsapp" WHERE "id" > $1 AND "idcliente" = $2 AND indstatus IS NOT null ORDER BY id ASC';
+      'SELECT id, chave, indstatus, idcliente, data_atendimento, hora_atendimento, nomepaciente, id_local, medico FROM "confirmacaowhatsapp" WHERE "id" > $1 AND "idcliente" = $2 AND indstatus IS NOT null ORDER BY id ASC';
     const dados = await new Promise((resolve, reject) => {
       db.query(query, [dadosMensagens.id, idCliente], (erro, result) => {
         if (erro) {
