@@ -1,5 +1,5 @@
 require("dotenv").config();
-const MessageService = require("../services/messageService.js");
+const MessageService = require("../services/messageService copy.js");
 const axios = require("axios");
 const { criaJwt } = require("../auth/verificaJWT.js");
 
@@ -679,7 +679,7 @@ exports.getRelatorioCobranca = async (req, res, next) => {
           }
         }
       });
-      res.status(200).send(JSON.stringify(payload.rows.length));
+      res.status(200).send(payload.rows);
     }
   } catch (error) {
     res.status(400).send({
@@ -813,39 +813,66 @@ exports.getRelatorioFalha = async (req, res, next) => {
 exports.postCliente = async (req, res, next) => {
   try {
     const body = await req.body;
-    const testandoCliente = await new MessageService().getClienteBySchema(
-      body.nome_schema
+    // const testandoCliente = await new MessageService().getClienteBySchema(
+    //   body.nome_schema
+    // );
+    // const id = (await testandoCliente.rows[0])
+    //   ? testandoCliente.rows[0].id
+    //   : "";
+    // const schema = (await testandoCliente.rows[0])
+    //   ? testandoCliente.rows[0].nome_schema
+    //   : "";
+    const { id, mensagem } = await new MessageService().createCliente(
+      body,
+      body.servicos
     );
-    const id = (await testandoCliente.rows[0])
-      ? testandoCliente.rows[0].id
-      : "";
-    const schema = (await testandoCliente.rows[0])
-      ? testandoCliente.rows[0].nome_schema
-      : "";
     //verificação se o cliente já existe
-    if (id) {
-      //Caso o cliente exista atualizo o tokenwhatsapp e o idtelefonewhatsapp
-      const updateCliente = await new MessageService().updateCliente(body);
-      res
-        .status(200)
-        .send(criaJwt(id, schema, "Cliente atualizado com sucesso."));
-      // }
-    } else {
-      //Caso cliente não exista no DB ele será criado.
-      const createCliente = await new MessageService().createCliente(body);
-      const cliente = await new MessageService().getClienteBySchema(
-        body.nome_schema
-      );
-      res
-        .status(200)
-        .send(
-          criaJwt(
-            cliente.rows[0].id,
-            cliente.rows[0].nome_schema,
-            "Cliente criado com sucesso."
-          )
-        );
-    }
+    // if (id) {
+    //   //Caso o cliente exista atualizo o tokenwhatsapp e o idtelefonewhatsapp
+    //   const updateCliente = await new MessageService().updateCliente(body);
+    //   await body.servicos.map(async (servico) => {
+    //     const testandoServico = await new MessageService().getServicoCliente(
+    //       servico.id,
+    //       id
+    //     );
+    //     if (testandoServico.rows[0]) {
+    //       const novoServico = await new MessageService().updateServicoCliente(
+    //         servico,
+    //         id
+    //       );
+    //     } else {
+    //       const novoServico = await new MessageService().createServicoCliente(
+    //         servico,
+    //         id
+    //       );
+    //       console.log(novoServico);
+    //     }
+    //   });
+    res.status(200).send(criaJwt(id, body.nome_schema, mensagem));
+    // }
+    // } else {
+    //   //Caso cliente não exista no DB ele será criado.
+    //   const createCliente = await new MessageService().createCliente(body);
+    //   const cliente = await new MessageService().getClienteBySchema(
+    //     body.nome_schema
+    //   );
+    //   await body.servicos.map(async (servico) => {
+    //     await new MessageService().createServicoCliente(
+    //       servico,
+    //       cliente.rows[0].id
+    //     );
+    //   });
+    //   // console.log(await createCliente);
+    //   res
+    //     .status(200)
+    //     .send(
+    //       criaJwt(
+    //         cliente.rows[0].id,
+    //         cliente.rows[0].nome_schema,
+    //         "Cliente criado com sucesso."
+    //       )
+    //     );
+    // }
   } catch (error) {
     res.status(400).send({
       message: error.message,

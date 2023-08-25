@@ -1,4 +1,4 @@
-const messageController = require("../controllers/messageController");
+const messageController = require("../controllers/messageController - Copia");
 const express = require("express");
 const router = express.Router();
 const { authenticate } = require("../auth/verificaJWT");
