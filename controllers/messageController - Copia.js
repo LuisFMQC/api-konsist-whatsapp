@@ -810,6 +810,38 @@ exports.getRelatorioFalha = async (req, res, next) => {
   }
 };
 // Criar ou atualizar cliente no DB
+
+exports.getClienteServico = async (req, res, next) => {
+  try {
+    const body = req.body;
+    const dadosClienteServico = await new MessageService().getClienteServico(
+      body.nome_schema
+    );
+    res.status(200).send(
+      dadosClienteServico.rows.map((servico) => {
+        return servico;
+      })
+    );
+  } catch (error) {
+    res.status(400).send({
+      message: error.message,
+    });
+    next(error);
+  }
+};
+
+exports.postServico = async (req, res, next) => {
+  try {
+    const body = req.body;
+    await new MessageService().insertServico(body.descricao);
+    res.status(200).send("Serviço criado com sucesso.");
+  } catch (error) {
+    res.status(400).send({
+      message: error.message,
+    });
+    next(error);
+  }
+};
 exports.postCliente = async (req, res, next) => {
   try {
     const body = await req.body;

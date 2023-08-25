@@ -10,5 +10,7 @@ router.get("/", authenticate, (req, res, next) => {
 router.get("/webhook", messageController.getwebhook);
 router.post("/webhook", messageController.postWebhook);
 router.post("/criaratualizarcliente", messageController.postCliente);
+router.post("/verificacadastro", messageController.getClienteServico);
+router.post("/criarservico", messageController.postServico);
 
 module.exports = router;

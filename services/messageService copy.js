@@ -136,8 +136,12 @@ class MessageService {
     return this.repository.getRegistroCobrado(idCliente, contato);
   }
 
-  async getServicoCliente(idServico, idCliente) {
-    return this.repository.getServicoCliente(idServico, idCliente);
+  async getClienteServico(idCliente) {
+    return this.repository.getClienteServico(idCliente);
+  }
+
+  async insertServico(descricao) {
+    return this.repository.insertServico(descricao);
   }
 
   async updateServicoCliente(servico, idCliente) {

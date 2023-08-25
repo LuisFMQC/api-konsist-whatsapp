@@ -665,6 +665,21 @@ class MessageRepository {
 
     return dados;
   }
+  async getClienteServico(code) {
+    const query =
+      "SELECT * FROM agendawebcliente AS a JOIN cliente_servico AS c ON a.id = c.id_cliente WHERE a.nome_schema = $1";
+    const dados = await new Promise((resolve, reject) => {
+      db.query(query, [code], (erro, result) => {
+        if (erro) {
+          console.log(erro);
+          return reject("Erro:" + erro);
+        }
+        return resolve(result);
+      });
+    });
+
+    return dados;
+  }
 
   async insertCliente(dadosCliente) {
     const query =
@@ -692,21 +707,16 @@ class MessageRepository {
 
     return dados;
   }
-  async insertServicoCliente(servico, idCliente) {
-    const query =
-      'INSERT INTO "cliente_servico" ( "id_servico", "id_cliente", "data_inicio", "data_fim" ) VALUES ( $1, $2, $3, $4 )';
+  async insertServico(descricao) {
+    const query = 'INSERT INTO "servico" ( "descricao" ) VALUES ( $1 )';
     const dados = await new Promise((resolve, reject) => {
-      db.query(
-        query,
-        [servico.id, idCliente, servico.data_inicio, servico.data_fim],
-        (erro, result) => {
-          if (erro) {
-            console.log(erro);
-            return reject("Erro:" + erro);
-          }
-          return resolve(result);
+      db.query(query, [descricao], (erro, result) => {
+        if (erro) {
+          console.log(erro);
+          return reject("Erro:" + erro);
         }
-      );
+        return resolve(result);
+      });
     });
 
     return dados;
