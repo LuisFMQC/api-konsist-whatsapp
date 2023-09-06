@@ -1,26 +1,28 @@
-const express = require('express');
+const express = require("express");
 const router = express.Router();
-const messageController = require('../controllers/messageController');
-const { authenticate } = require('../auth/verificaJWT');
+const messageController = require("../controllers/messageController");
+const { authenticate } = require("../auth/verificaJWT");
 
-router.post('/envio', authenticate, messageController.getRelatorioEnvio);
+router.post("/envio", authenticate, messageController.getRelatorioEnvio);
 router.post(
-  '/enviounico',
+  "/enviounico",
   authenticate,
-  messageController.getRelatorioEnvioUnico,
+  messageController.getRelatorioEnvioUnico
 );
-router.post('/falha', authenticate, messageController.getRelatorioFalha);
+router.post("/falha", authenticate, messageController.getRelatorioFalha);
 router.post(
-  '/falhaunica',
+  "/falhaunica",
   authenticate,
-  messageController.getRelatorioFalhaUnico,
+  messageController.getRelatorioFalhaUnico
 );
 
-router.post('/cobranca', authenticate, messageController.getRelatorioCobranca);
+router.post("/cobranca", authenticate, messageController.getRelatorioCobranca);
 router.post(
-  '/recaptacao',
+  "/recaptacao",
   authenticate,
-  messageController.getSolicitacaoContato,
+  messageController.getSolicitacaoContato
 );
+
+router.post("/cobrancageral", messageController.getEnviosCobradosTodos);
 
 module.exports = router;

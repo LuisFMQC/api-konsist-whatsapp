@@ -1,8 +1,12 @@
-const MessageRepository = require('../database/repositories/messageRepository');
+const MessageRepository = require("../database/repositories/messageRepository");
 
 class MessageService {
   constructor() {
     this.repository = new MessageRepository();
+  }
+
+  async getTokenKonsist(id, schema) {
+    return this.repository.getTokenKonsist(id, schema);
   }
 
   async getStatus(code) {
@@ -14,7 +18,7 @@ class MessageService {
       dadosPaciente,
       dadosAgendamento,
       idCliente,
-      code,
+      code
     );
   }
 
@@ -23,7 +27,7 @@ class MessageService {
       dadosPaciente,
       dadosAgendamento,
       idCliente,
-      code,
+      code
     );
   }
 
@@ -32,7 +36,7 @@ class MessageService {
       dadosPaciente,
       dadosAgendamento,
       idCliente,
-      code,
+      code
     );
   }
 
@@ -40,7 +44,7 @@ class MessageService {
     return this.repository.postDadosAtendimentoFalha(
       dadosPaciente,
       dadosAgendamento,
-      idCliente,
+      idCliente
     );
   }
 
@@ -48,7 +52,7 @@ class MessageService {
     return this.repository.postDadosAtendimentoNovoRegistro(
       dadosAtendimento,
       status,
-      code,
+      code
     );
   }
 
@@ -144,6 +148,10 @@ class MessageService {
     return this.repository.getClienteServico(idCliente);
   }
 
+  async getEnviosCobradosTodos(data_inicio, data_fim) {
+    return this.repository.getEnviosCobradosTodos(data_inicio, data_fim);
+  }
+
   async insertServico(descricao) {
     return this.repository.insertServico(descricao);
   }
@@ -161,7 +169,7 @@ class MessageService {
       dadosPaciente,
       dadosAgendamento,
       idCliente,
-      code,
+      code
     );
   }
 
@@ -189,7 +197,7 @@ class MessageService {
     return this.repository.postNovoRegistroContato(
       dadosAtendimento,
       code,
-      resposta,
+      resposta
     );
   }
 
@@ -197,7 +205,7 @@ class MessageService {
     return this.repository.postNovoRegistroPesquisa(
       dadosAtendimento,
       code,
-      resposta,
+      resposta
     );
   }
 
@@ -205,7 +213,7 @@ class MessageService {
     return this.repository.postNovoRegistroNota(
       dadosAtendimento,
       code,
-      resposta,
+      resposta
     );
   }
 
