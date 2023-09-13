@@ -618,7 +618,11 @@ exports.get = async (req, res, next) => {
         body,
         dadosCliente.rows[0].id
       );
-      res.status(200).send(payload.rows);
+      const payloadTrat = payload.rows.map((registro) => {
+        if (registro.id_local === null) registro.id_local = "";
+        return registro;
+      });
+      res.status(200).send(payloadTrat);
     }
   } catch (error) {
     res.status(400).send({
