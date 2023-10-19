@@ -4,7 +4,7 @@ const { base64decode, base64encode } = require("nodejs-base64");
 
 const senha = base64decode(process.env.SENHAJWT);
 
-const criaJwt = (id, schema, mensagem) => {
+const criaJwt = (id, schema, mensagem, token_documento, token_agendaweb) => {
   const payload = {
     userId: id,
     username: schema,
@@ -14,7 +14,9 @@ const criaJwt = (id, schema, mensagem) => {
   const secret = jwt.sign(payload, senha);
   return {
     resposta: mensagem,
-    token: secret,
+    token_whatsapp: secret,
+    token_documento: token_documento,
+    token_agendaweb: token_agendaweb,
   };
 };
 

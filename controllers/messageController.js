@@ -1,5 +1,5 @@
 require("dotenv").config();
-const MessageService = require("../services/messageService");
+const MessageService = require("../services/messageService.js");
 const axios = require("axios");
 const { criaJwt } = require("../auth/verificaJWT.js");
 
@@ -883,6 +883,7 @@ exports.getClienteServico = async (req, res, next) => {
           id_servico: servico.id_servico,
           data_inicio: servico.data_inicio,
           data_fim: servico.data_fim,
+          token: servico.token,
         };
       });
       res.status(200).send(dataCliente);
@@ -932,10 +933,34 @@ exports.postServico = async (req, res, next) => {
 exports.postCliente = async (req, res, next) => {
   try {
     const body = await req.body;
+    let token_documento;
+    let token_agendaweb;
+    let mensagemJson;
+    let resSend = {
+      resposta: mensagemJson,
+      token_documento: token_documento,
+      token_agendaweb: token_agendaweb,
+    };
+
+    async function getToken(schema, id, servico) {
+      const response = await axios({
+        method: "GET",
+        url: "http://18.230.75.177:1415/gettoken/" + schema,
+      });
+      if (response.status === 200) {
+        const { token } = await response.data;
+        const payload = await new MessageService().updateClienteServico(
+          servico,
+          token,
+          id
+        );
+        return token;
+      }
+    }
     const verificaWpp = await body.servicos.map((servico) => {
       if (servico.id === 1) return true;
     });
-    if (verificaWpp.includes(true)) {
+    if (await verificaWpp.includes(true)) {
       if (!body.tokenwhatsapp || !body.idtelefonewhatsapp) {
         res
           .status(405)
@@ -947,69 +972,63 @@ exports.postCliente = async (req, res, next) => {
           body,
           body.servicos
         );
-        res.status(200).send(criaJwt(id, body.nome_schema, mensagem));
+
+        const servicos = await Promise.all(
+          body.servicos.map(async (servico) => {
+            if (servico.id === 6) {
+              const token = await getToken(body.nome_schema, id, servico);
+              return { id: servico.id, token_documentos: token };
+            }
+            if (servico.id === 1) {
+              const { token_whatsapp } = criaJwt(id, body.nome_schema);
+              const payload = await new MessageService().updateClienteServico(
+                servico,
+                token_whatsapp,
+                id
+              );
+            }
+            return servico;
+          })
+        );
+        const token_documentos = servicos.filter((servico) => servico.id === 6);
+        token_documento = token_documentos.token_documentos
+          ? token_documentos[0].token_documentos
+          : undefined;
+
+        res
+          .status(200)
+          .send(
+            criaJwt(
+              id,
+              body.nome_schema,
+              mensagem,
+              token_documento,
+              token_agendaweb
+            )
+          );
       }
     } else {
-      // const testandoCliente = await new MessageService().getClienteBySchema(
-      //   body.nome_schema
-      // );
-      // const id = (await testandoCliente.rows[0])
-      //   ? testandoCliente.rows[0].id
-      //   : "";
-      // const schema = (await testandoCliente.rows[0])
-      //   ? testandoCliente.rows[0].nome_schema
-      //   : "";
       const { id, mensagem } = await new MessageService().createCliente(
         body,
         body.servicos
       );
-      //verificação se o cliente já existe
-      // if (id) {
-      //   //Caso o cliente exista atualizo o tokenwhatsapp e o idtelefonewhatsapp
-      //   const updateCliente = await new MessageService().updateCliente(body);
-      //   await body.servicos.map(async (servico) => {
-      //     const testandoServico = await new MessageService().getServicoCliente(
-      //       servico.id,
-      //       id
-      //     );
-      //     if (testandoServico.rows[0]) {
-      //       const novoServico = await new MessageService().updateServicoCliente(
-      //         servico,
-      //         id
-      //       );
-      //     } else {
-      //       const novoServico = await new MessageService().createServicoCliente(
-      //         servico,
-      //         id
-      //       );
-      //       console.log(novoServico);
-      //     }
-      //   });
-      res.status(200).send(criaJwt(id, body.nome_schema, mensagem));
-      // }
-      // } else {
-      //   //Caso cliente não exista no DB ele será criado.
-      //   const createCliente = await new MessageService().createCliente(body);
-      //   const cliente = await new MessageService().getClienteBySchema(
-      //     body.nome_schema
-      //   );
-      //   await body.servicos.map(async (servico) => {
-      //     await new MessageService().createServicoCliente(
-      //       servico,
-      //       cliente.rows[0].id
-      //     );
-      //   });
-      //   // console.log(await createCliente);
-      //   res
-      //     .status(200)
-      //     .send(
-      //       criaJwt(
-      //         cliente.rows[0].id,
-      //         cliente.rows[0].nome_schema,
-      //         "Cliente criado com sucesso."
-      //       )
-      //     );
-      // }
+
+      const servicos = await Promise.all(
+        body.servicos.map(async (servico) => {
+          if (servico.id === 6) {
+            const token = await getToken(body.nome_schema, id, servico);
+            return { id: servico.id, token_documentos: token };
+          }
+          return servico;
+        })
+      );
+      const token_documentos = servicos.filter((servico) => servico.id === 6);
+      token_documento = token_documentos.token_documentos
+        ? token_documentos[0].token_documentos
+        : undefined;
+      resSend.mensagemJson = mensagem;
+      resSend.token_documento = token_documento;
+      res.send(resSend);
     }
   } catch (error) {
     res.status(400).send({

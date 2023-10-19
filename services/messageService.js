@@ -87,6 +87,9 @@ class MessageService {
   async updateCliente(dadosCliente) {
     return this.repository.updateCliente(dadosCliente);
   }
+  async updateClienteServico(servico, token, id) {
+    return this.repository.updateClienteServico(servico, token, id);
+  }
 
   async getIdCliente(code) {
     return this.repository.getIdCliente(code);
