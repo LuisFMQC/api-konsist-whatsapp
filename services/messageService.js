@@ -1,4 +1,4 @@
-const MessageRepository = require("../database/repositories/messageRepository");
+const MessageRepository = require('../database/repositories/messageRepository');
 
 class MessageService {
   constructor() {
@@ -18,7 +18,7 @@ class MessageService {
       dadosPaciente,
       dadosAgendamento,
       idCliente,
-      code
+      code,
     );
   }
 
@@ -27,8 +27,19 @@ class MessageService {
       dadosPaciente,
       dadosAgendamento,
       idCliente,
-      code
+      code,
     );
+  }
+  async createEnvioToken(dadosPaciente, dadosAgendamento, idCliente, code) {
+    return this.repository.postDadosEnvioToken(
+      dadosPaciente,
+      dadosAgendamento,
+      idCliente,
+      code,
+    );
+  }
+  async createNovoEnvioToken(dados, token) {
+    return this.repository.postNovoRegistroEnvioToken(dados, token);
   }
 
   async createPesquisa(dadosPaciente, dadosAgendamento, idCliente, code) {
@@ -36,7 +47,7 @@ class MessageService {
       dadosPaciente,
       dadosAgendamento,
       idCliente,
-      code
+      code,
     );
   }
 
@@ -44,7 +55,7 @@ class MessageService {
     return this.repository.postDadosAtendimentoFalha(
       dadosPaciente,
       dadosAgendamento,
-      idCliente
+      idCliente,
     );
   }
 
@@ -52,7 +63,7 @@ class MessageService {
     return this.repository.postDadosAtendimentoNovoRegistro(
       dadosAtendimento,
       status,
-      code
+      code,
     );
   }
 
@@ -66,6 +77,10 @@ class MessageService {
 
   async getClienteById(code) {
     return this.repository.getClienteById(code);
+  }
+
+  async getEnvioToken(dados) {
+    return this.repository.getEnvioToken(dados);
   }
 
   async getClienteByIdTelefone(code) {
@@ -113,6 +128,9 @@ class MessageService {
 
   async getAllMessages(dados, idCliente) {
     return this.repository.getAllMessages(dados, idCliente);
+  }
+  async getAllTokens(dados, idCliente) {
+    return this.repository.getAllTokens(dados, idCliente);
   }
 
   async getAllNotas(dados, idCliente) {
@@ -167,12 +185,19 @@ class MessageService {
     return this.repository.insertServicoCliente(servico, idCliente);
   }
 
-  async postRegistroCobrado(dadosPaciente, dadosAgendamento, idCliente, code) {
+  async postRegistroCobrado(
+    dadosPaciente,
+    dadosAgendamento,
+    idCliente,
+    code,
+    tipo,
+  ) {
     return this.repository.postRegistroCobrado(
       dadosPaciente,
       dadosAgendamento,
       idCliente,
-      code
+      code,
+      tipo,
     );
   }
 
@@ -200,7 +225,7 @@ class MessageService {
     return this.repository.postNovoRegistroContato(
       dadosAtendimento,
       code,
-      resposta
+      resposta,
     );
   }
 
@@ -208,7 +233,7 @@ class MessageService {
     return this.repository.postNovoRegistroPesquisa(
       dadosAtendimento,
       code,
-      resposta
+      resposta,
     );
   }
 
@@ -216,7 +241,7 @@ class MessageService {
     return this.repository.postNovoRegistroNota(
       dadosAtendimento,
       code,
-      resposta
+      resposta,
     );
   }
 
