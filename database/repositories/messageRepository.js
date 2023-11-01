@@ -283,33 +283,27 @@ class MessageRepository {
     return dados;
   }
 
-  async postRegistroCobrado(
-    dadosPaciente,
-    dadosAgendamento,
-    idCliente,
-    code,
-    tipo
-  ) {
+  async postRegistroCobrado(dadosPaciente, dadosAgendamento, idCliente, tipo) {
     const query =
       'INSERT INTO "envioscobrados" ( "chave", "idcliente", "contato", "data_atendimento", "hora_atendimento", "nomepaciente", "medico", "localatendimento", "tipo" ) VALUES ( $1, $2, $3, $4, $5, $6, $7, $8, $9 )';
     const dados = await new Promise((resolve, reject) => {
       db.query(
         query,
         [
-          dadosAgendamento.agendamento_chave,
+          dadosAgendamento ? dadosAgendamento.agendamento_chave : null,
           idCliente,
           dadosPaciente.telefone,
-          dadosAgendamento.agendamento_data,
-          dadosAgendamento.agendamento_hora,
+          dadosAgendamento ? dadosAgendamento.agendamento_data : null,
+          dadosAgendamento ? dadosAgendamento.agendamento_hora : null,
           dadosPaciente.paciente,
-          dadosAgendamento.agendamento_medico,
-          dadosAgendamento.empresa_unidade,
+          dadosAgendamento ? dadosAgendamento.agendamento_medico : null,
+          dadosAgendamento ? dadosAgendamento.empresa_unidade : null,
           tipo,
         ],
         (erro, result) => {
           if (erro) {
             console.log(erro);
-            return reject("Erro ao listar medico!");
+            return reject("Erro ao cadastrar registro cobrado!");
           }
           return resolve(result);
         }
@@ -376,6 +370,25 @@ class MessageRepository {
           if (erro) {
             console.log(erro);
             return reject("Erro ao listar medico!");
+          }
+          return resolve(result);
+        }
+      );
+    });
+
+    return dados;
+  }
+  async postDadosEnvioAniversario(dadosPaciente, idCliente, code) {
+    const query =
+      'INSERT INTO "enviosaniversarios" ( "idcliente", "contato", "idconversa", "nomepaciente" ) VALUES ( $1, $2, $3, $4)';
+    const dados = await new Promise((resolve, reject) => {
+      db.query(
+        query,
+        [idCliente, dadosPaciente.telefone, code, dadosPaciente.paciente],
+        (erro, result) => {
+          if (erro) {
+            console.log(erro);
+            return reject("Erro ao Cadastrar Mensagem de aniversário!");
           }
           return resolve(result);
         }
@@ -487,14 +500,14 @@ class MessageRepository {
       db.query(
         query,
         [
-          dadosAgendamento.agendamento_chave,
+          dadosAgendamento ? dadosAgendamento.agendamento_chave : null,
           idCliente,
           dadosPaciente.telefone,
-          dadosAgendamento.agendamento_data,
-          dadosAgendamento.agendamento_hora,
+          dadosAgendamento ? dadosAgendamento.agendamento_data : null,
+          dadosAgendamento ? dadosAgendamento.agendamento_hora : null,
           dadosPaciente.paciente,
-          dadosAgendamento.agendamento_medico,
-          dadosAgendamento.empresa_unidade,
+          dadosAgendamento ? dadosAgendamento.agendamento_medico : null,
+          dadosAgendamento ? dadosAgendamento.empresa_unidade : null,
         ],
         (erro, result) => {
           if (erro) {
