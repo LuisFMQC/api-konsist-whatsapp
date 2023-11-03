@@ -38,6 +38,19 @@ class MessageService {
       code
     );
   }
+  async createEnvioRecaptacao(
+    dadosPaciente,
+    dadosAgendamento,
+    idCliente,
+    code
+  ) {
+    return this.repository.postDadosEnvioRecaptacao(
+      dadosPaciente,
+      dadosAgendamento,
+      idCliente,
+      code
+    );
+  }
   async createEnvioAniversario(dadosPaciente, idCliente, code) {
     return this.repository.postDadosEnvioAniversario(
       dadosPaciente,

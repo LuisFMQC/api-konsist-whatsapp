@@ -243,6 +243,96 @@ async function enviaMensagemToken(
     console.log("Error Envio Token: " + e + "/ Telefone: " + body.telefone);
   }
 }
+
+async function enviaMensagemRecaptacao(
+  idTelefone,
+  token,
+  idCliente,
+  body,
+  agendamento,
+  dadosCliente,
+  res
+) {
+  try {
+    await axios({
+      method: "POST",
+      url: `https://graph.facebook.com/v15.0/${idTelefone}/messages?access_token=${token}`,
+      data: {
+        messaging_product: "whatsapp",
+        to: body.telefone,
+        type: "template",
+        template: {
+          name: "recaptacao_paciente",
+          language: {
+            code: "pt_BR",
+            policy: "deterministic",
+          },
+          components: [
+            {
+              type: "body",
+              parameters: [
+                {
+                  type: "text",
+                  text: body.paciente,
+                },
+                {
+                  type: "text",
+                  text: dadosCliente.rows[0].nome,
+                },
+                {
+                  type: "text",
+                  text: dadosCliente.rows[0].contato,
+                },
+                {
+                  type: "text",
+                  text: dadosCliente.rows[0].nome,
+                },
+                {
+                  type: "text",
+                  text: dadosCliente.rows[0].nome,
+                },
+              ],
+            },
+          ],
+        },
+        headers: {
+          "Content-Type": "application/json",
+        },
+      },
+    }).then(async (response) => {
+      if (res.status(200)) {
+        let id = await response.data.messages[0].id;
+        let payload = await new MessageService().createEnvioRecaptacao(
+          body,
+          agendamento,
+          idCliente,
+          id
+        );
+
+        const consultaRegistroCobrado =
+          await new MessageService().getRegistroCobrado(
+            idCliente,
+            body.telefone
+          );
+        if (!consultaRegistroCobrado.rows[0]) {
+          await new MessageService().postRegistroCobrado(
+            body,
+            agendamento,
+            idCliente,
+            5
+          );
+        }
+      }
+    });
+  } catch (e) {
+    let payload = await new MessageService().createMessageFalha(
+      body,
+      agendamento,
+      idCliente
+    );
+    console.log("Error Envio Token: " + e + "/ Telefone: " + body.telefone);
+  }
+}
 async function enviaMensagemAniversario(
   idTelefone,
   token,
