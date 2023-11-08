@@ -851,6 +851,30 @@ exports.getAllTokens = async (req, res, next) => {
     next(error);
   }
 };
+exports.getTokenAgendamento = async (req, res, next) => {
+  try {
+    const body = await req.body;
+    const dadosCliente = await new MessageService().getClienteBySchema(
+      body.nome_schema
+    );
+    if (dadosCliente.rows[0]) {
+      const payload = await new MessageService().getTokenAgendamento(
+        body,
+        dadosCliente.rows[0].id
+      );
+      const payloadTrat = payload.rows.map((registro) => {
+        if (registro.id_local === null) registro.id_local = "";
+        return registro;
+      });
+      res.status(200).send(payloadTrat);
+    }
+  } catch (error) {
+    res.status(400).send({
+      message: error.message,
+    });
+    next(error);
+  }
+};
 
 exports.getToken = async (req, res, next) => {
   try {

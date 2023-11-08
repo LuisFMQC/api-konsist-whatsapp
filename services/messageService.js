@@ -1,4 +1,4 @@
-const MessageRepository = require("../database/repositories/messageRepository");
+const MessageRepository = require('../database/repositories/messageRepository');
 
 class MessageService {
   constructor() {
@@ -18,7 +18,7 @@ class MessageService {
       dadosPaciente,
       dadosAgendamento,
       idCliente,
-      code
+      code,
     );
   }
 
@@ -27,7 +27,7 @@ class MessageService {
       dadosPaciente,
       dadosAgendamento,
       idCliente,
-      code
+      code,
     );
   }
   async createEnvioToken(dadosPaciente, dadosAgendamento, idCliente, code) {
@@ -35,27 +35,27 @@ class MessageService {
       dadosPaciente,
       dadosAgendamento,
       idCliente,
-      code
+      code,
     );
   }
   async createEnvioRecaptacao(
     dadosPaciente,
     dadosAgendamento,
     idCliente,
-    code
+    code,
   ) {
     return this.repository.postDadosEnvioRecaptacao(
       dadosPaciente,
       dadosAgendamento,
       idCliente,
-      code
+      code,
     );
   }
   async createEnvioAniversario(dadosPaciente, idCliente, code) {
     return this.repository.postDadosEnvioAniversario(
       dadosPaciente,
       idCliente,
-      code
+      code,
     );
   }
   async createNovoEnvioToken(dados, token) {
@@ -67,7 +67,7 @@ class MessageService {
       dadosPaciente,
       dadosAgendamento,
       idCliente,
-      code
+      code,
     );
   }
 
@@ -75,7 +75,7 @@ class MessageService {
     return this.repository.postDadosAtendimentoFalha(
       dadosPaciente,
       dadosAgendamento,
-      idCliente
+      idCliente,
     );
   }
 
@@ -83,7 +83,7 @@ class MessageService {
     return this.repository.postDadosAtendimentoNovoRegistro(
       dadosAtendimento,
       status,
-      code
+      code,
     );
   }
 
@@ -152,6 +152,9 @@ class MessageService {
   async getAllTokens(dados, idCliente) {
     return this.repository.getAllTokens(dados, idCliente);
   }
+  async getTokenAgendamento(dados, idCliente) {
+    return this.repository.getTokenAgendamento(dados, idCliente);
+  }
 
   async getAllNotas(dados, idCliente) {
     return this.repository.getAllNotas(dados, idCliente);
@@ -210,7 +213,7 @@ class MessageService {
       dadosPaciente,
       dadosAgendamento,
       idCliente,
-      tipo
+      tipo,
     );
   }
 
@@ -238,7 +241,7 @@ class MessageService {
     return this.repository.postNovoRegistroContato(
       dadosAtendimento,
       code,
-      resposta
+      resposta,
     );
   }
 
@@ -246,7 +249,7 @@ class MessageService {
     return this.repository.postNovoRegistroPesquisa(
       dadosAtendimento,
       code,
-      resposta
+      resposta,
     );
   }
 
@@ -254,7 +257,7 @@ class MessageService {
     return this.repository.postNovoRegistroNota(
       dadosAtendimento,
       code,
-      resposta
+      resposta,
     );
   }
 
