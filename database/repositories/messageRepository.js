@@ -397,6 +397,25 @@ class MessageRepository {
 
     return dados;
   }
+  async postDadosEnvioRecaptacao(dadosPaciente, idCliente, code) {
+    const query =
+      'INSERT INTO "enviosrecaptacao" ( "idcliente", "contato", "idconversa", "nomepaciente" ) VALUES ( $1, $2, $3, $4)';
+    const dados = await new Promise((resolve, reject) => {
+      db.query(
+        query,
+        [idCliente, dadosPaciente.telefone, code, dadosPaciente.paciente],
+        (erro, result) => {
+          if (erro) {
+            console.log(erro);
+            return reject("Erro ao Cadastrar Mensagem de aniversário!");
+          }
+          return resolve(result);
+        }
+      );
+    });
+
+    return dados;
+  }
   async postDadosEnvioToken(dadosPaciente, dadosAgendamento, idCliente, code) {
     const query =
       'INSERT INTO "enviostoken" ( "chave", "idcliente", "contato", "idconversa", "data_atendimento", "hora_atendimento", "nomepaciente", "medico", "localatendimento", "id_local" ) VALUES ( $1, $2, $3, $4, $5, $6, $7, $8, $9, $10 )';

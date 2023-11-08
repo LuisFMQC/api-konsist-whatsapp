@@ -249,7 +249,6 @@ async function enviaMensagemRecaptacao(
   token,
   idCliente,
   body,
-  agendamento,
   dadosCliente,
   res
 ) {
@@ -304,7 +303,6 @@ async function enviaMensagemRecaptacao(
         let id = await response.data.messages[0].id;
         let payload = await new MessageService().createEnvioRecaptacao(
           body,
-          agendamento,
           idCliente,
           id
         );
@@ -315,22 +313,19 @@ async function enviaMensagemRecaptacao(
             body.telefone
           );
         if (!consultaRegistroCobrado.rows[0]) {
-          await new MessageService().postRegistroCobrado(
-            body,
-            agendamento,
-            idCliente,
-            5
-          );
+          await new MessageService().postRegistroCobrado(body, idCliente, 5);
         }
       }
     });
   } catch (e) {
     let payload = await new MessageService().createMessageFalha(
       body,
-      agendamento,
+      null,
       idCliente
     );
-    console.log("Error Envio Token: " + e + "/ Telefone: " + body.telefone);
+    console.log(
+      "Error Envio Recaptação: " + e + "/ Telefone: " + body.telefone
+    );
   }
 }
 async function enviaMensagemAniversario(
@@ -1579,7 +1574,67 @@ exports.postEnvioAniversario = async (req, res, next) => {
     }
     res.sendStatus(200);
   } catch (error) {
-    console.log("Erro no Post do Token!");
+    console.log("Erro no Post do Aniversario!");
+    res.status(400).send({
+      message: error.message,
+    });
+    next(error);
+  }
+};
+
+exports.postEnvioRecaptacao = async (req, res, next) => {
+  try {
+    let body = await req.body;
+    let dadosCliente = await new MessageService().getClienteBySchema(
+      Array.isArray(body) ? body[0].nome_schema : body.nome_schema
+    );
+    let token = await dadosCliente.rows[0].tokenwhatsapp;
+    let idTelefone = await dadosCliente.rows[0].idtelefonewhatsapp;
+    let idCliente = await dadosCliente.rows[0].id;
+    if (res.status(200)) {
+      if (!Array.isArray(body)) {
+        body.agendamento.map(async (agendamento) => {
+          await enviaMensagemRecaptacao(
+            idTelefone,
+            token,
+            idCliente,
+            body,
+            dadosCliente,
+            res
+          );
+        });
+      } else {
+        try {
+          body.forEach(async (data, i) => {
+            try {
+              setTimeout(async () => {
+                try {
+                  await enviaMensagemRecaptacao(
+                    idTelefone,
+                    token,
+                    idCliente,
+                    data,
+                    dadosCliente,
+                    res
+                  );
+                } catch (e) {
+                  console.log(e);
+                  next(e);
+                }
+              }, i * 1000);
+            } catch (e) {
+              console.log(e.message);
+            }
+          });
+        } catch (e) {
+          console.log(e.message);
+          next(e);
+        }
+      }
+    }
+    res.sendStatus(200);
+  } catch (error) {
+    console.log("Erro no Post da Recaptacao");
     res.status(400).send({
       message: error.message,
     });

@@ -23,5 +23,6 @@ router.post(
   authenticate,
   messageController.postEnvioAniversario
 );
+router.post("/recaptacao", authenticate, messageController.postEnvioRecaptacao);
 
 module.exports = router;
