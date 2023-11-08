@@ -1,8 +1,8 @@
-require("dotenv").config();
-const MessageService = require("../services/messageService.js");
-const axios = require("axios");
-const { criaJwt } = require("../auth/verificaJWT.js");
-const crypto = require("crypto");
+require('dotenv').config();
+const MessageService = require('../services/messageService.js');
+const axios = require('axios');
+const { criaJwt } = require('../auth/verificaJWT.js');
+const crypto = require('crypto');
 
 const secretKey = Buffer.from(crypto.randomBytes(32));
 // const secretKey = crypto.createHash("sha256").update("token123@abc").digest();
@@ -15,85 +15,85 @@ async function enviaMensagem(
   body,
   agendamento,
   dadosCliente,
-  res
+  res,
 ) {
-  const [ano, mes, dia] = agendamento.agendamento_data.split("-");
-  const data = dia + "/" + mes + "/" + ano;
+  const [ano, mes, dia] = agendamento.agendamento_data.split('-');
+  const data = dia + '/' + mes + '/' + ano;
   try {
     await axios({
-      method: "POST",
+      method: 'POST',
       url: `https://graph.facebook.com/v15.0/${idTelefone}/messages?access_token=${token}`,
       data: {
-        messaging_product: "whatsapp",
+        messaging_product: 'whatsapp',
         to: body.telefone,
-        type: "template",
+        type: 'template',
         template: {
           name: (await agendamento.agendamento_preparo)
-            ? "confirmacao_preparo_backup"
-            : "confirmacao_agendamento_backup",
+            ? 'confirmacao_preparo_backup'
+            : 'confirmacao_agendamento_backup',
           language: {
-            code: "pt_BR",
-            policy: "deterministic",
+            code: 'pt_BR',
+            policy: 'deterministic',
           },
           components: [
             {
-              type: "body",
+              type: 'body',
               parameters: [
                 {
-                  type: "text",
+                  type: 'text',
                   text: body.paciente,
                 },
                 {
-                  type: "text",
+                  type: 'text',
                   text: dadosCliente.rows[0].nome,
                 },
                 {
-                  type: "text",
+                  type: 'text',
                   text: data,
                 },
                 {
-                  type: "text",
+                  type: 'text',
                   text: agendamento.agendamento_hora,
                 },
 
                 {
-                  type: "text",
+                  type: 'text',
                   text:
                     agendamento.empresa_unidade +
-                    " - " +
+                    ' - ' +
                     agendamento.empresa_endereco,
                 },
                 {
-                  type: "text",
+                  type: 'text',
                   text: agendamento.agendamento_medico,
                 },
                 agendamento.agendamento_preparo
                   ? {
-                      type: "text",
+                      type: 'text',
                       text: agendamento.agendamento_preparo
-                        .replace(/\n+/g, " ")
-                        .replace(/\t+/g, " ")
-                        .replace(/ +/g, " "),
+                        .replace(/\n+/g, ' ')
+                        .replace(/\t+/g, ' ')
+                        .replace(/ +/g, ' '),
                     }
-                  : "",
+                  : '',
                 agendamento.empresa_link
                   ? {
-                      type: "text",
+                      type: 'text',
                       text:
-                        agendamento.empresa_link != ""
-                          ? "Localização: " + agendamento.empresa_link
-                          : " ",
+                        agendamento.empresa_link != ''
+                          ? 'Localização: ' + agendamento.empresa_link
+                          : ' ',
                     }
                   : {
-                      type: "text",
-                      text: " ",
+                      type: 'text',
+                      text: ' ',
                     },
               ],
             },
           ],
         },
         headers: {
-          "Content-Type": "application/json",
+          'Content-Type': 'application/json',
         },
       },
     }).then(async (response) => {
@@ -103,20 +103,20 @@ async function enviaMensagem(
           body,
           agendamento,
           idCliente,
-          id
+          id,
         );
 
         const consultaRegistroCobrado =
           await new MessageService().getRegistroCobrado(
             idCliente,
-            body.telefone
+            body.telefone,
           );
         if (!consultaRegistroCobrado.rows[0]) {
           await new MessageService().postRegistroCobrado(
             body,
             agendamento,
             idCliente,
-            1
+            1,
           );
         }
       }
@@ -125,9 +125,9 @@ async function enviaMensagem(
     let payload = await new MessageService().createMessageFalha(
       body,
       agendamento,
-      idCliente
+      idCliente,
     );
-    console.log("Error: " + e + "/ Telefone: " + body.telefone);
+    console.log('Error: ' + e + '/ Telefone: ' + body.telefone);
   }
 }
 
@@ -138,67 +138,67 @@ async function enviaMensagemToken(
   body,
   agendamento,
   dadosCliente,
-  res
+  res,
 ) {
-  const [ano, mes, dia] = agendamento.agendamento_data.split("-");
-  const data = dia + "/" + mes + "/" + ano;
+  const [ano, mes, dia] = agendamento.agendamento_data.split('-');
+  const data = dia + '/' + mes + '/' + ano;
   const parametroOriginal = JSON.stringify({
     chave: agendamento.agendamento_chave,
     idcliente: dadosCliente.rows[0].id,
   });
   const cipher = crypto.createCipheriv(
-    "aes-256-cbc",
+    'aes-256-cbc',
     Buffer.from(secretKey),
-    iv
+    iv,
   );
   let parametroCriptografado = cipher.update(
     parametroOriginal,
-    "utf8",
-    "base64"
+    'utf8',
+    'base64',
   );
-  parametroCriptografado += cipher.final("base64");
+  parametroCriptografado += cipher.final('base64');
   let url = `https://token.konsist.com.br/?param=${encodeURIComponent(
-    parametroCriptografado
+    parametroCriptografado,
   )}`;
   try {
     await axios({
-      method: "POST",
+      method: 'POST',
       url: `https://graph.facebook.com/v15.0/${idTelefone}/messages?access_token=${token}`,
       data: {
-        messaging_product: "whatsapp",
+        messaging_product: 'whatsapp',
         to: body.telefone,
-        type: "template",
+        type: 'template',
         template: {
-          name: "aviso_token",
+          name: 'aviso_token',
           language: {
-            code: "pt_BR",
-            policy: "deterministic",
+            code: 'pt_BR',
+            policy: 'deterministic',
           },
           components: [
             {
-              type: "body",
+              type: 'body',
               parameters: [
                 {
-                  type: "text",
+                  type: 'text',
                   text: body.paciente,
                 },
                 {
-                  type: "text",
+                  type: 'text',
                   text: dadosCliente.rows[0].nome,
                 },
                 {
-                  type: "text",
+                  type: 'text',
                   text: body.paciente,
                 },
                 {
-                  type: "text",
+                  type: 'text',
                   text: url,
                   // agendamento.agendamento_chave +
                   // '&idcliente=' +
                   // dadosCliente.rows[0].id,
                 },
                 {
-                  type: "text",
+                  type: 'text',
                   text: dadosCliente.rows[0].contato,
                 },
               ],
@@ -206,7 +206,7 @@ async function enviaMensagemToken(
           ],
         },
         headers: {
-          "Content-Type": "application/json",
+          'Content-Type': 'application/json',
         },
       },
     }).then(async (response) => {
@@ -216,20 +216,20 @@ async function enviaMensagemToken(
           body,
           agendamento,
           idCliente,
-          id
+          id,
         );
 
         const consultaRegistroCobrado =
           await new MessageService().getRegistroCobrado(
             idCliente,
-            body.telefone
+            body.telefone,
           );
         if (!consultaRegistroCobrado.rows[0]) {
           await new MessageService().postRegistroCobrado(
             body,
             agendamento,
             idCliente,
-            3
+            3,
           );
         }
       }
@@ -238,9 +238,9 @@ async function enviaMensagemToken(
     let payload = await new MessageService().createMessageFalha(
       body,
       agendamento,
-      idCliente
+      idCliente,
     );
-    console.log("Error Envio Token: " + e + "/ Telefone: " + body.telefone);
+    console.log('Error Envio Token: ' + e + '/ Telefone: ' + body.telefone);
   }
 }
 
@@ -251,44 +251,44 @@ async function enviaMensagemRecaptacao(
   body,
   agendamento,
   dadosCliente,
-  res
+  res,
 ) {
   try {
     await axios({
-      method: "POST",
+      method: 'POST',
       url: `https://graph.facebook.com/v15.0/${idTelefone}/messages?access_token=${token}`,
       data: {
-        messaging_product: "whatsapp",
+        messaging_product: 'whatsapp',
         to: body.telefone,
-        type: "template",
+        type: 'template',
         template: {
-          name: "recaptacao_paciente",
+          name: 'recaptacao_paciente',
           language: {
-            code: "pt_BR",
-            policy: "deterministic",
+            code: 'pt_BR',
+            policy: 'deterministic',
           },
           components: [
             {
-              type: "body",
+              type: 'body',
               parameters: [
                 {
-                  type: "text",
+                  type: 'text',
                   text: body.paciente,
                 },
                 {
-                  type: "text",
+                  type: 'text',
                   text: dadosCliente.rows[0].nome,
                 },
                 {
-                  type: "text",
+                  type: 'text',
                   text: dadosCliente.rows[0].contato,
                 },
                 {
-                  type: "text",
+                  type: 'text',
                   text: dadosCliente.rows[0].nome,
                 },
                 {
-                  type: "text",
+                  type: 'text',
                   text: dadosCliente.rows[0].nome,
                 },
               ],
@@ -296,7 +296,7 @@ async function enviaMensagemRecaptacao(
           ],
         },
         headers: {
-          "Content-Type": "application/json",
+          'Content-Type': 'application/json',
         },
       },
     }).then(async (response) => {
@@ -306,20 +306,20 @@ async function enviaMensagemRecaptacao(
           body,
           agendamento,
           idCliente,
-          id
+          id,
         );
 
         const consultaRegistroCobrado =
           await new MessageService().getRegistroCobrado(
             idCliente,
-            body.telefone
+            body.telefone,
           );
         if (!consultaRegistroCobrado.rows[0]) {
           await new MessageService().postRegistroCobrado(
             body,
             agendamento,
             idCliente,
-            5
+            5,
           );
         }
       }
@@ -328,9 +328,9 @@ async function enviaMensagemRecaptacao(
     let payload = await new MessageService().createMessageFalha(
       body,
       agendamento,
-      idCliente
+      idCliente,
     );
-    console.log("Error Envio Token: " + e + "/ Telefone: " + body.telefone);
+    console.log('Error Envio Token: ' + e + '/ Telefone: ' + body.telefone);
   }
 }
 async function enviaMensagemAniversario(
@@ -339,32 +339,32 @@ async function enviaMensagemAniversario(
   idCliente,
   body,
   dadosCliente,
-  res
+  res,
 ) {
   try {
     await axios({
-      method: "POST",
+      method: 'POST',
       url: `https://graph.facebook.com/v15.0/${idTelefone}/messages?access_token=${token}`,
       data: {
-        messaging_product: "whatsapp",
+        messaging_product: 'whatsapp',
         to: body.telefone,
-        type: "template",
+        type: 'template',
         template: {
-          name: "aniversario_paciente",
+          name: 'aniversario_paciente',
           language: {
-            code: "pt_BR",
-            policy: "deterministic",
+            code: 'pt_BR',
+            policy: 'deterministic',
           },
           components: [
             {
-              type: "body",
+              type: 'body',
               parameters: [
                 {
-                  type: "text",
+                  type: 'text',
                   text: body.paciente,
                 },
                 {
-                  type: "text",
+                  type: 'text',
                   text: dadosCliente.rows[0].nome,
                 },
               ],
@@ -372,7 +372,7 @@ async function enviaMensagemAniversario(
           ],
         },
         headers: {
-          "Content-Type": "application/json",
+          'Content-Type': 'application/json',
         },
       },
     }).then(async (response) => {
@@ -381,20 +381,20 @@ async function enviaMensagemAniversario(
         let payload = await new MessageService().createEnvioAniversario(
           body,
           idCliente,
-          id
+          id,
         );
 
         const consultaRegistroCobrado =
           await new MessageService().getRegistroCobrado(
             idCliente,
-            body.telefone
+            body.telefone,
           );
         if (!consultaRegistroCobrado.rows[0]) {
           await new MessageService().postRegistroCobrado(
             body,
             null,
             idCliente,
-            4
+            4,
           );
         }
       }
@@ -403,10 +403,10 @@ async function enviaMensagemAniversario(
     let payload = await new MessageService().createMessageFalha(
       body,
       null,
-      idCliente
+      idCliente,
     );
     console.log(
-      "Error Envio Aniversário: " + e + "/ Telefone: " + body.telefone
+      'Error Envio Aniversário: ' + e + '/ Telefone: ' + body.telefone,
     );
   }
 }
@@ -418,50 +418,50 @@ async function enviaMensagemBloqueio(
   body,
   agendamento,
   dadosCliente,
-  res
+  res,
 ) {
-  const [ano, mes, dia] = agendamento.agendamento_data.split("-");
-  const data = dia + "/" + mes + "/" + ano;
+  const [ano, mes, dia] = agendamento.agendamento_data.split('-');
+  const data = dia + '/' + mes + '/' + ano;
   try {
     await axios({
-      method: "POST",
+      method: 'POST',
       url: `https://graph.facebook.com/v15.0/${idTelefone}/messages?access_token=${token}`,
       data: {
-        messaging_product: "whatsapp",
+        messaging_product: 'whatsapp',
         to: body.telefone,
-        type: "template",
+        type: 'template',
         template: {
-          name: "aviso_bloqueio",
+          name: 'aviso_bloqueio',
           language: {
-            code: "pt_BR",
-            policy: "deterministic",
+            code: 'pt_BR',
+            policy: 'deterministic',
           },
           components: [
             {
-              type: "body",
+              type: 'body',
               parameters: [
                 {
-                  type: "text",
+                  type: 'text',
                   text: body.paciente,
                 },
                 {
-                  type: "text",
+                  type: 'text',
                   text: dadosCliente.rows[0].nome,
                 },
                 {
-                  type: "text",
+                  type: 'text',
                   text: agendamento.agendamento_medico,
                 },
                 {
-                  type: "text",
+                  type: 'text',
                   text: data,
                 },
                 {
-                  type: "text",
+                  type: 'text',
                   text: agendamento.agendamento_hora,
                 },
                 {
-                  type: "text",
+                  type: 'text',
                   text: dadosCliente.rows[0].contato,
                 },
               ],
@@ -469,7 +469,7 @@ async function enviaMensagemBloqueio(
           ],
         },
         headers: {
-          "Content-Type": "application/json",
+          'Content-Type': 'application/json',
         },
       },
     }).then(async (response) => {
@@ -479,20 +479,20 @@ async function enviaMensagemBloqueio(
           body,
           agendamento,
           idCliente,
-          id
+          id,
         );
 
         const consultaRegistroCobrado =
           await new MessageService().getRegistroCobrado(
             idCliente,
-            body.telefone
+            body.telefone,
           );
         if (!consultaRegistroCobrado.rows[0]) {
           await new MessageService().postRegistroCobrado(
             body,
             agendamento,
             idCliente,
-            2
+            2,
           );
         }
       }
@@ -501,9 +501,9 @@ async function enviaMensagemBloqueio(
     let payload = await new MessageService().createMessageFalha(
       body,
       agendamento,
-      idCliente
+      idCliente,
     );
-    console.log("Error Bloqueio: " + e + "/ Telefone: " + body.telefone);
+    console.log('Error Bloqueio: ' + e + '/ Telefone: ' + body.telefone);
   }
 }
 
@@ -512,11 +512,11 @@ const respostasAceitas = {
     if (statusDB.rows[0].indstatus === null && !statusDB.rows[1]) {
       const payload = await new MessageService().novoRegistro(
         statusDB.rows[0],
-        "C",
-        idConversa
+        'C',
+        idConversa,
       );
-      return "Agendamento confirmado, obrigado.";
-    } else if (statusDB.rows[1].indstatus === "D") {
+      return 'Agendamento confirmado, obrigado.';
+    } else if (statusDB.rows[1].indstatus === 'D') {
       return `Este agendamento já foi desmarcado anteriormente, impossibilitando assim sua confirmação! Caso deseje remarcar o atendimento, favor entrar em contato conosco no ${dadosCliente.rows[0].contato}.`;
     }
   },
@@ -524,22 +524,22 @@ const respostasAceitas = {
     if (statusDB.rows[0].indstatus === null) {
       const payload = await new MessageService().novoRegistro(
         statusDB.rows[0],
-        "D",
-        idConversa
+        'D',
+        idConversa,
       );
       return `Agendamento desmarcado! Caso deseje remarcar o atendimento, favor entrar em contato conosco no ${dadosCliente.rows[0].contato}.`;
-    } else if (statusDB.rows[0].indstatus === "C") {
+    } else if (statusDB.rows[0].indstatus === 'C') {
       const payload = await new MessageService().novoRegistro(
         statusDB.rows[0],
-        "D",
-        idConversa
+        'D',
+        idConversa,
       );
       return `Agendamento desmarcado! Caso deseje remarcar o atendimento, favor entrar em contato conosco no ${dadosCliente.rows[0].contato}.`;
-    } else if (statusDB.rows[0].indstatus === "C") {
+    } else if (statusDB.rows[0].indstatus === 'C') {
       const payload = await new MessageService().novoRegistro(
         statusDB.rows[0],
-        "D",
-        idConversa
+        'D',
+        idConversa,
       );
       return `Agendamento desmarcado! Caso deseje remarcar o atendimento, favor entrar em contato conosco no ${dadosCliente.rows[0].contato}.`;
     }
@@ -547,55 +547,55 @@ const respostasAceitas = {
 
   async s(resposta, idConversa) {
     const dadosContato = await new MessageService().getRegistroContato(
-      idConversa
+      idConversa,
     );
     await new MessageService().novoRegistroContato(
       dadosContato.rows[0],
       idConversa,
-      resposta
+      resposta,
     );
-    return "A clínica entrará em contato com você em breve para realizar a remarcação do seu agendamento. Muito obrigado e tenha um ótimo dia!";
+    return 'A clínica entrará em contato com você em breve para realizar a remarcação do seu agendamento. Muito obrigado e tenha um ótimo dia!';
   },
 
   async n(resposta, idConversa) {
     const dadosContato = await new MessageService().getRegistroContato(
-      idConversa
+      idConversa,
     );
     await new MessageService().novoRegistroContato(
       dadosContato.rows[0],
       idConversa,
-      resposta
+      resposta,
     );
-    return "Muito obrigado pela resposta e tenha um ótimo dia!";
+    return 'Muito obrigado pela resposta e tenha um ótimo dia!';
   },
 
   async rp(resposta, idConversa) {
     const dadosContato = await new MessageService().getRegistroPesquisa(
-      idConversa
+      idConversa,
     );
     await new MessageService().novoRegistroPesquisa(
       dadosContato.rows[0],
       idConversa,
-      resposta
+      resposta,
     );
     await new MessageService().novoRegistroNota(
       dadosContato.rows[0],
       idConversa,
-      null
+      null,
     );
     return;
   },
 
   async nr(resposta, idConversa) {
     const dadosContato = await new MessageService().getRegistroPesquisa(
-      idConversa
+      idConversa,
     );
     await new MessageService().novoRegistroPesquisa(
       dadosContato.rows[0],
       idConversa,
-      resposta
+      resposta,
     );
-    return "Muito obrigado pela resposta e tenha um ótimo dia!";
+    return 'Muito obrigado pela resposta e tenha um ótimo dia!';
   },
 
   async 1(resposta, idConversa) {
@@ -603,9 +603,9 @@ const respostasAceitas = {
     await new MessageService().novoRegistroNota(
       dadosNota.rows[0],
       idConversa,
-      "1"
+      '1',
     );
-    return "Obrigado por responder nossa pesquisa, sua opinião é muito importante para nós! Tenha um excelente dia!";
+    return 'Obrigado por responder nossa pesquisa, sua opinião é muito importante para nós! Tenha um excelente dia!';
   },
 
   async 2(resposta, idConversa) {
@@ -613,9 +613,9 @@ const respostasAceitas = {
     await new MessageService().novoRegistroNota(
       dadosNota.rows[0],
       idConversa,
-      "2"
+      '2',
     );
-    return "Obrigado por responder nossa pesquisa, sua opinião é muito importante para nós! Tenha um excelente dia!";
+    return 'Obrigado por responder nossa pesquisa, sua opinião é muito importante para nós! Tenha um excelente dia!';
   },
 
   async 3(resposta, idConversa) {
@@ -623,9 +623,9 @@ const respostasAceitas = {
     await new MessageService().novoRegistroNota(
       dadosNota.rows[0],
       idConversa,
-      "3"
+      '3',
     );
-    return "Obrigado por responder nossa pesquisa, sua opinião é muito importante para nós! Tenha um excelente dia!";
+    return 'Obrigado por responder nossa pesquisa, sua opinião é muito importante para nós! Tenha um excelente dia!';
   },
 
   async 4(resposta, idConversa) {
@@ -633,9 +633,9 @@ const respostasAceitas = {
     await new MessageService().novoRegistroNota(
       dadosNota.rows[0],
       idConversa,
-      "4"
+      '4',
     );
-    return "Obrigado por responder nossa pesquisa, sua opinião é muito importante para nós! Tenha um excelente dia!";
+    return 'Obrigado por responder nossa pesquisa, sua opinião é muito importante para nós! Tenha um excelente dia!';
   },
 
   async 5(resposta, idConversa) {
@@ -643,9 +643,9 @@ const respostasAceitas = {
     await new MessageService().novoRegistroNota(
       dadosNota.rows[0],
       idConversa,
-      "5"
+      '5',
     );
-    return "Obrigado por responder nossa pesquisa, sua opinião é muito importante para nós! Tenha um excelente dia!";
+    return 'Obrigado por responder nossa pesquisa, sua opinião é muito importante para nós! Tenha um excelente dia!';
   },
 };
 
@@ -675,20 +675,20 @@ function verificaBody(req) {
 async function enviaResposta(num, token, para, verifica) {
   try {
     await axios({
-      method: "POST",
+      method: 'POST',
       url:
-        "https://graph.facebook.com/v12.0/" +
+        'https://graph.facebook.com/v12.0/' +
         num +
-        "/messages?access_token=" +
+        '/messages?access_token=' +
         token,
       data: {
-        messaging_product: "whatsapp",
+        messaging_product: 'whatsapp',
         to: para,
         text: {
           body: await verifica,
         },
       },
-      headers: { "Content-Type": "application/json" },
+      headers: { 'Content-Type': 'application/json' },
     });
   } catch (e) {
     console.log(e.message);
@@ -698,21 +698,21 @@ async function enviaResposta(num, token, para, verifica) {
 async function enviaPergunta(num, token, para, idMensagem, res) {
   try {
     await axios({
-      method: "POST",
+      method: 'POST',
       url: `https://graph.facebook.com/v15.0/${num}/messages?access_token=${token}`,
       data: {
-        messaging_product: "whatsapp",
+        messaging_product: 'whatsapp',
         to: para,
-        type: "template",
+        type: 'template',
         template: {
-          name: "pergunta_contato",
+          name: 'pergunta_contato',
           language: {
-            code: "pt_BR",
-            policy: "deterministic",
+            code: 'pt_BR',
+            policy: 'deterministic',
           },
         },
         headers: {
-          "Content-Type": "application/json",
+          'Content-Type': 'application/json',
         },
       },
     }).then(async (response) => {
@@ -722,7 +722,7 @@ async function enviaPergunta(num, token, para, idMensagem, res) {
         let contato = await new MessageService().novoRegistroContato(
           payload.rows[0],
           id,
-          null
+          null,
         );
       }
     });
@@ -733,53 +733,53 @@ async function enviaPergunta(num, token, para, idMensagem, res) {
 async function enviaPesquisa(num, token, para, idMensagem, res) {
   try {
     await axios({
-      method: "POST",
+      method: 'POST',
       url: `https://graph.facebook.com/v15.0/${num}/messages?access_token=${token}`,
       data: {
-        messaging_product: "whatsapp",
-        recipient_type: "individual",
+        messaging_product: 'whatsapp',
+        recipient_type: 'individual',
         to: para,
-        type: "interactive",
+        type: 'interactive',
         interactive: {
-          type: "list",
+          type: 'list',
           header: {
-            type: "text",
-            text: "Pesquisa de Satisfação",
+            type: 'text',
+            text: 'Pesquisa de Satisfação',
           },
           body: {
             text: "Selecione uma nota clicando no botão 'Dar nota' abaixo.",
           },
 
           action: {
-            button: "Dar nota",
+            button: 'Dar nota',
             sections: [
               {
-                title: "Selecione uma nota:",
+                title: 'Selecione uma nota:',
                 rows: [
                   {
-                    id: "1",
-                    title: "Péssimo",
-                    description: "1",
+                    id: '1',
+                    title: 'Péssimo',
+                    description: '1',
                   },
                   {
-                    id: "2",
-                    title: "Ruim",
-                    description: "2",
+                    id: '2',
+                    title: 'Ruim',
+                    description: '2',
                   },
                   {
-                    id: "3",
-                    title: "Bom",
-                    description: "3",
+                    id: '3',
+                    title: 'Bom',
+                    description: '3',
                   },
                   {
-                    id: "4",
-                    title: "Ótimo",
-                    description: "4",
+                    id: '4',
+                    title: 'Ótimo',
+                    description: '4',
                   },
                   {
-                    id: "5",
-                    title: "Excelente",
-                    description: "5",
+                    id: '5',
+                    title: 'Excelente',
+                    description: '5',
                   },
                 ],
               },
@@ -788,18 +788,18 @@ async function enviaPesquisa(num, token, para, idMensagem, res) {
         },
       },
       headers: {
-        "Content-Type": "application/json",
+        'Content-Type': 'application/json',
       },
     }).then(async (response) => {
       if (res.status(200)) {
         let id = await response.data.messages[0].id;
         let payload = await new MessageService().getMessageByIdPesquisa(
-          idMensagem
+          idMensagem,
         );
         let contato = await new MessageService().novoRegistroNota(
           payload.rows[0],
           id,
-          null
+          null,
         );
       }
     });
@@ -812,15 +812,15 @@ exports.get = async (req, res, next) => {
   try {
     const body = await req.body;
     const dadosCliente = await new MessageService().getClienteBySchema(
-      body.nome_schema
+      body.nome_schema,
     );
     if (dadosCliente.rows[0]) {
       const payload = await new MessageService().getAllMessages(
         body,
-        dadosCliente.rows[0].id
+        dadosCliente.rows[0].id,
       );
       const payloadTrat = payload.rows.map((registro) => {
-        if (registro.id_local === null) registro.id_local = "";
+        if (registro.id_local === null) registro.id_local = '';
         return registro;
       });
       res.status(200).send(payloadTrat);
@@ -836,15 +836,39 @@ exports.getAllTokens = async (req, res, next) => {
   try {
     const body = await req.body;
     const dadosCliente = await new MessageService().getClienteBySchema(
-      body.nome_schema
+      body.nome_schema,
     );
     if (dadosCliente.rows[0]) {
       const payload = await new MessageService().getAllTokens(
         body,
-        dadosCliente.rows[0].id
+        dadosCliente.rows[0].id,
       );
       const payloadTrat = payload.rows.map((registro) => {
-        if (registro.id_local === null) registro.id_local = "";
+        if (registro.id_local === null) registro.id_local = '';
+        return registro;
+      });
+      res.status(200).send(payloadTrat);
+    }
+  } catch (error) {
+    res.status(400).send({
+      message: error.message,
+    });
+    next(error);
+  }
+};
+exports.getTokenAgendamento = async (req, res, next) => {
+  try {
+    const body = await req.body;
+    const dadosCliente = await new MessageService().getClienteBySchema(
+      body.nome_schema,
+    );
+    if (dadosCliente.rows[0]) {
+      const payload = await new MessageService().getTokenAgendamento(
+        body,
+        dadosCliente.rows[0].id,
+      );
+      const payloadTrat = payload.rows.map((registro) => {
+        if (registro.id_local === null) registro.id_local = '';
         return registro;
       });
       res.status(200).send(payloadTrat);
@@ -862,10 +886,10 @@ exports.getToken = async (req, res, next) => {
     const body = await req.body;
     const dadosCliente = await new MessageService().getTokenKonsist(
       body.id,
-      body.nome_schema
+      body.nome_schema,
     );
     if (dadosCliente.rows[0]) {
-      res.status(200).send(criaJwt(body.id, body.nome_schema, "Sucesso"));
+      res.status(200).send(criaJwt(body.id, body.nome_schema, 'Sucesso'));
     }
   } catch (error) {
     res.status(400).send({
@@ -878,12 +902,12 @@ exports.getPesquisa = async (req, res, next) => {
   try {
     const body = await req.body;
     const dadosCliente = await new MessageService().getClienteBySchema(
-      body.nome_schema
+      body.nome_schema,
     );
     if (dadosCliente.rows[0]) {
       const payload = await new MessageService().getAllNotas(
         body,
-        dadosCliente.rows[0].id
+        dadosCliente.rows[0].id,
       );
       res.status(200).send(payload.rows);
     }
@@ -899,12 +923,12 @@ exports.getSolicitacaoContato = async (req, res, next) => {
   try {
     const body = await req.body;
     const dadosCliente = await new MessageService().getClienteBySchema(
-      body.nome_schema
+      body.nome_schema,
     );
     if (dadosCliente.rows[0]) {
       const payload = await new MessageService().getSolicitacaoContato(
         body.id,
-        dadosCliente.rows[0].id
+        dadosCliente.rows[0].id,
       );
       res.status(200).send(payload.rows);
     }
@@ -920,19 +944,19 @@ exports.getRelatorioCobranca = async (req, res, next) => {
   try {
     const body = await req.body;
     const dadosCliente = await new MessageService().getClienteBySchema(
-      body.nome_schema
+      body.nome_schema,
     );
-    body.data_inicial ? (body.data_inicial += " 00:00:00") : "";
-    body.data_final ? (body.data_final += " 23:59:59") : "";
+    body.data_inicial ? (body.data_inicial += ' 00:00:00') : '';
+    body.data_final ? (body.data_final += ' 23:59:59') : '';
     if (dadosCliente.rows[0]) {
       const payload = await new MessageService().getRelatorioCobranca(
         body,
-        dadosCliente.rows[0].id
+        dadosCliente.rows[0].id,
       );
       payload.rows.map((data) => {
         for (let prop in data) {
           if (data[prop] === null) {
-            data[prop] = "";
+            data[prop] = '';
           }
         }
       });
@@ -950,19 +974,19 @@ exports.getRelatorioEnvio = async (req, res, next) => {
   try {
     const body = await req.body;
     const dadosCliente = await new MessageService().getClienteBySchema(
-      body.nome_schema
+      body.nome_schema,
     );
-    body.data_inicial ? (body.data_inicial += " 00:00:00") : "";
-    body.data_final ? (body.data_final += " 23:59:59") : "";
+    body.data_inicial ? (body.data_inicial += ' 00:00:00') : '';
+    body.data_final ? (body.data_final += ' 23:59:59') : '';
     if (dadosCliente.rows[0]) {
       const payload = await new MessageService().getRelatorioEnvio(
         body,
-        dadosCliente.rows[0].id
+        dadosCliente.rows[0].id,
       );
       payload.rows.map((data) => {
         for (let prop in data) {
           if (data[prop] === null) {
-            data[prop] = "";
+            data[prop] = '';
           }
         }
       });
@@ -980,24 +1004,24 @@ exports.getRelatorioEnvioUnico = async (req, res, next) => {
   try {
     const body = await req.body;
     const dadosCliente = await new MessageService().getClienteBySchema(
-      body.nome_schema
+      body.nome_schema,
     );
-    body.data_inicial ? (body.data_inicial += " 00:00:00") : "";
-    body.data_final ? (body.data_final += " 23:59:59") : "";
+    body.data_inicial ? (body.data_inicial += ' 00:00:00') : '';
+    body.data_final ? (body.data_final += ' 23:59:59') : '';
     if (dadosCliente.rows[0]) {
       const payload = await new MessageService().getRelatorioEnvioUnico(
         body.chave,
-        dadosCliente.rows[0].id
+        dadosCliente.rows[0].id,
       );
       payload.rows.map((data) => {
         for (let prop in data) {
           if (data[prop] === null) {
-            data[prop] = "";
+            data[prop] = '';
           }
         }
       });
       if (payload.rows.length > 0) res.status(201).send(payload.rows);
-      else res.status(200).send("Nenhum agendamento encontrato!");
+      else res.status(200).send('Nenhum agendamento encontrato!');
     }
   } catch (error) {
     res.status(400).send({
@@ -1011,24 +1035,24 @@ exports.getRelatorioFalhaUnico = async (req, res, next) => {
   try {
     const body = await req.body;
     const dadosCliente = await new MessageService().getClienteBySchema(
-      body.nome_schema
+      body.nome_schema,
     );
-    body.data_inicial ? (body.data_inicial += " 00:00:00") : "";
-    body.data_final ? (body.data_final += " 23:59:59") : "";
+    body.data_inicial ? (body.data_inicial += ' 00:00:00') : '';
+    body.data_final ? (body.data_final += ' 23:59:59') : '';
     if (dadosCliente.rows[0]) {
       const payload = await new MessageService().getRelatorioFalhaUnico(
         body.chave,
-        dadosCliente.rows[0].id
+        dadosCliente.rows[0].id,
       );
       payload.rows.map((data) => {
         for (let prop in data) {
           if (data[prop] === null) {
-            data[prop] = "";
+            data[prop] = '';
           }
         }
       });
       if (payload.rows.length > 0) res.status(201).send(payload.rows);
-      else res.status(200).send("Nenhum agendamento encontrato!");
+      else res.status(200).send('Nenhum agendamento encontrato!');
     }
   } catch (error) {
     res.status(400).send({
@@ -1041,19 +1065,19 @@ exports.getRelatorioFalha = async (req, res, next) => {
   try {
     const body = await req.body;
     const dadosCliente = await new MessageService().getClienteBySchema(
-      body.nome_schema
+      body.nome_schema,
     );
-    body.data_inicial ? (body.data_inicial += " 00:00:00") : "";
-    body.data_final ? (body.data_final += " 23:59:59") : "";
+    body.data_inicial ? (body.data_inicial += ' 00:00:00') : '';
+    body.data_final ? (body.data_final += ' 23:59:59') : '';
     if (dadosCliente.rows[0]) {
       const payload = await new MessageService().getRelatorioFalha(
         body,
-        dadosCliente.rows[0].id
+        dadosCliente.rows[0].id,
       );
       payload.rows.map((data) => {
         for (let prop in data) {
           if (data[prop] === null) {
-            data[prop] = "";
+            data[prop] = '';
           }
         }
       });
@@ -1074,7 +1098,7 @@ exports.getServicos = async (req, res, next) => {
     res.status(200).send(
       servicos.rows.map((servico) => {
         return servico;
-      })
+      }),
     );
   } catch (error) {
     res.status(400).send({
@@ -1088,7 +1112,7 @@ exports.getClienteServico = async (req, res, next) => {
   try {
     const body = req.body;
     const dadosClienteServico = await new MessageService().getClienteServico(
-      body.nome_schema
+      body.nome_schema,
     );
     if (dadosClienteServico.rows[0]) {
       const dataCliente = {
@@ -1113,7 +1137,7 @@ exports.getClienteServico = async (req, res, next) => {
       });
       res.status(200).send(dataCliente);
     } else {
-      res.status(400).send("Cliente não encontrado.");
+      res.status(400).send('Cliente não encontrado.');
     }
   } catch (error) {
     res.status(400).send({
@@ -1128,12 +1152,12 @@ exports.getEnviosCobradosTodos = async (req, res, next) => {
     const body = req.body;
     const clientes = await new MessageService().getEnviosCobradosTodos(
       body.data_inicio,
-      body.data_fim
+      body.data_fim,
     );
     res.status(200).send(
       clientes.rows.map((data) => {
         return data;
-      })
+      }),
     );
   } catch (error) {
     res.status(400).send({
@@ -1147,7 +1171,7 @@ exports.postServico = async (req, res, next) => {
   try {
     const body = req.body;
     await new MessageService().insertServico(body.descricao);
-    res.status(200).send("Serviço criado com sucesso.");
+    res.status(200).send('Serviço criado com sucesso.');
   } catch (error) {
     res.status(400).send({
       message: error.message,
@@ -1169,15 +1193,15 @@ exports.postCliente = async (req, res, next) => {
 
     async function getToken(schema, id, servico) {
       const response = await axios({
-        method: "GET",
-        url: "http://18.230.75.177:1415/gettoken/" + schema,
+        method: 'GET',
+        url: 'http://18.230.75.177:1415/gettoken/' + schema,
       });
       if (response.status === 200) {
         const { token } = await response.data;
         const payload = await new MessageService().updateClienteServico(
           servico,
           token,
-          id
+          id,
         );
         return token;
       }
@@ -1190,12 +1214,12 @@ exports.postCliente = async (req, res, next) => {
         res
           .status(405)
           .send(
-            "Serviço de whatsapp enviado na requisição, tokenwhatsapp ou idtelefone whatsapp não preenchido"
+            'Serviço de whatsapp enviado na requisição, tokenwhatsapp ou idtelefone whatsapp não preenchido',
           );
       } else {
         const { id, mensagem } = await new MessageService().createCliente(
           body,
-          body.servicos
+          body.servicos,
         );
 
         const servicos = await Promise.all(
@@ -1209,11 +1233,11 @@ exports.postCliente = async (req, res, next) => {
               const payload = await new MessageService().updateClienteServico(
                 servico,
                 token_whatsapp,
-                id
+                id,
               );
             }
             return servico;
-          })
+          }),
         );
         const token_documentos = servicos.filter((servico) => servico.id === 6);
         token_documento = token_documentos.token_documentos
@@ -1228,14 +1252,14 @@ exports.postCliente = async (req, res, next) => {
               body.nome_schema,
               mensagem,
               token_documento,
-              token_agendaweb
-            )
+              token_agendaweb,
+            ),
           );
       }
     } else {
       const { id, mensagem } = await new MessageService().createCliente(
         body,
-        body.servicos
+        body.servicos,
       );
 
       const servicos = await Promise.all(
@@ -1245,7 +1269,7 @@ exports.postCliente = async (req, res, next) => {
             return { id: servico.id, token_documentos: token };
           }
           return servico;
-        })
+        }),
       );
       const token_documentos = servicos.filter((servico) => servico.id === 6);
       token_documento = token_documentos.token_documentos
@@ -1268,7 +1292,7 @@ exports.postMessage = async (req, res, next) => {
   try {
     let body = await req.body;
     let dadosCliente = await new MessageService().getClienteBySchema(
-      Array.isArray(body) ? body[0].nome_schema : body.nome_schema
+      Array.isArray(body) ? body[0].nome_schema : body.nome_schema,
     );
     let token = await dadosCliente.rows[0].tokenwhatsapp;
     let idTelefone = await dadosCliente.rows[0].idtelefonewhatsapp;
@@ -1283,7 +1307,7 @@ exports.postMessage = async (req, res, next) => {
             body,
             agendamento,
             dadosCliente,
-            res
+            res,
           );
         });
       } else {
@@ -1302,7 +1326,7 @@ exports.postMessage = async (req, res, next) => {
                           data,
                           agendamento,
                           dadosCliente,
-                          res
+                          res,
                         );
                       } catch (e) {
                         console.log(e.message);
@@ -1327,7 +1351,7 @@ exports.postMessage = async (req, res, next) => {
     }
     res.sendStatus(200);
   } catch (error) {
-    console.log("Erro no Envio da mensagem de confirmação!");
+    console.log('Erro no Envio da mensagem de confirmação!');
     res.status(400).send({
       message: error.message,
     });
@@ -1338,7 +1362,7 @@ exports.postAvisoBloqueio = async (req, res, next) => {
   try {
     let body = await req.body;
     let dadosCliente = await new MessageService().getClienteBySchema(
-      Array.isArray(body) ? body[0].nome_schema : body.nome_schema
+      Array.isArray(body) ? body[0].nome_schema : body.nome_schema,
     );
     let token = await dadosCliente.rows[0].tokenwhatsapp;
     let idTelefone = await dadosCliente.rows[0].idtelefonewhatsapp;
@@ -1353,7 +1377,7 @@ exports.postAvisoBloqueio = async (req, res, next) => {
             body,
             agendamento,
             dadosCliente,
-            res
+            res,
           );
         });
       } else {
@@ -1372,7 +1396,7 @@ exports.postAvisoBloqueio = async (req, res, next) => {
                           data,
                           agendamento,
                           dadosCliente,
-                          res
+                          res,
                         );
                       } catch (e) {
                         console.log(e.message);
@@ -1397,7 +1421,7 @@ exports.postAvisoBloqueio = async (req, res, next) => {
     }
     res.sendStatus(200);
   } catch (error) {
-    console.log("Erro no Aviso de Bloqueio!");
+    console.log('Erro no Aviso de Bloqueio!');
     res.status(400).send({
       message: error.message,
     });
@@ -1409,7 +1433,7 @@ exports.postPesquisa = async (req, res, next) => {
   try {
     let body = await req.body;
     let dadosCliente = await new MessageService().getClienteBySchema(
-      Array.isArray(body) ? body[0].nome_schema : body.nome_schema
+      Array.isArray(body) ? body[0].nome_schema : body.nome_schema,
     );
     let token = await dadosCliente.rows[0].tokenwhatsapp;
     let idTelefone = await dadosCliente.rows[0].idtelefonewhatsapp;
@@ -1424,7 +1448,7 @@ exports.postPesquisa = async (req, res, next) => {
             body,
             agendamento,
             dadosCliente,
-            res
+            res,
           );
         });
       } else {
@@ -1440,7 +1464,7 @@ exports.postPesquisa = async (req, res, next) => {
                     data,
                     data.agendamento[0],
                     dadosCliente,
-                    res
+                    res,
                   );
                 } catch (e) {
                   console.log(error);
@@ -1459,7 +1483,7 @@ exports.postPesquisa = async (req, res, next) => {
     }
     res.sendStatus(200);
   } catch (error) {
-    console.log("Erro no PostPesquisa!");
+    console.log('Erro no PostPesquisa!');
     res.status(400).send({
       message: error.message,
     });
@@ -1470,7 +1494,7 @@ exports.postEnvioToken = async (req, res, next) => {
   try {
     let body = await req.body;
     let dadosCliente = await new MessageService().getClienteBySchema(
-      Array.isArray(body) ? body[0].nome_schema : body.nome_schema
+      Array.isArray(body) ? body[0].nome_schema : body.nome_schema,
     );
     let token = await dadosCliente.rows[0].tokenwhatsapp;
     let idTelefone = await dadosCliente.rows[0].idtelefonewhatsapp;
@@ -1485,7 +1509,7 @@ exports.postEnvioToken = async (req, res, next) => {
             body,
             agendamento,
             dadosCliente,
-            res
+            res,
           );
         });
       } else {
@@ -1501,7 +1525,7 @@ exports.postEnvioToken = async (req, res, next) => {
                     data,
                     data.agendamento[0],
                     dadosCliente,
-                    res
+                    res,
                   );
                 } catch (e) {
                   console.log(e);
@@ -1520,7 +1544,7 @@ exports.postEnvioToken = async (req, res, next) => {
     }
     res.sendStatus(200);
   } catch (error) {
-    console.log("Erro no Post do Token!");
+    console.log('Erro no Post do Token!');
     res.status(400).send({
       message: error.message,
     });
@@ -1531,7 +1555,7 @@ exports.postEnvioAniversario = async (req, res, next) => {
   try {
     let body = await req.body;
     let dadosCliente = await new MessageService().getClienteBySchema(
-      Array.isArray(body) ? body[0].nome_schema : body.nome_schema
+      Array.isArray(body) ? body[0].nome_schema : body.nome_schema,
     );
     let token = await dadosCliente.rows[0].tokenwhatsapp;
     let idTelefone = await dadosCliente.rows[0].idtelefonewhatsapp;
@@ -1545,7 +1569,7 @@ exports.postEnvioAniversario = async (req, res, next) => {
             idCliente,
             body,
             dadosCliente,
-            res
+            res,
           );
         });
       } else {
@@ -1560,7 +1584,7 @@ exports.postEnvioAniversario = async (req, res, next) => {
                     idCliente,
                     data,
                     dadosCliente,
-                    res
+                    res,
                   );
                 } catch (e) {
                   console.log(e);
@@ -1579,7 +1603,7 @@ exports.postEnvioAniversario = async (req, res, next) => {
     }
     res.sendStatus(200);
   } catch (error) {
-    console.log("Erro no Post do Token!");
+    console.log('Erro no Post do Token!');
     res.status(400).send({
       message: error.message,
     });
@@ -1592,27 +1616,27 @@ exports.postRegistroToken = async (req, res, next) => {
     const body = req.body;
     const param = decodeURIComponent(body.param);
     const decipher = crypto.createDecipheriv(
-      "aes-256-cbc",
+      'aes-256-cbc',
       Buffer.from(secretKey),
-      Buffer.from(iv, "base64")
+      Buffer.from(iv, 'base64'),
     );
-    let parametroDecifrado = decipher.update(param, "base64", "utf8");
-    parametroDecifrado += decipher.final("utf8");
+    let parametroDecifrado = decipher.update(param, 'base64', 'utf8');
+    parametroDecifrado += decipher.final('utf8');
     const getToken = JSON.parse(parametroDecifrado);
     const registroData = await new MessageService().getEnvioToken(getToken);
     if (registroData.rows && registroData.rows[0]) {
       const novoRegistro = await new MessageService().createNovoEnvioToken(
         registroData.rows[0],
-        body.token
+        body.token,
       );
-      res.status(201).send("Registro criado");
+      res.status(201).send('Registro criado');
     } else {
       res
         .status(401)
-        .send("Nenhum registro encontrado para essa chave e cliente");
+        .send('Nenhum registro encontrado para essa chave e cliente');
     }
   } catch (error) {
-    console.log("Erro no Registro do novo token!");
+    console.log('Erro no Registro do novo token!');
     res.status(400).send({
       message: error.message,
     });
@@ -1635,21 +1659,21 @@ exports.postWebhook = async (req, res, next) => {
         if (body.entry[0].changes[0].value.messages[0].button) {
           if (
             body.entry[0].changes[0].value.messages[0].button.payload ===
-              "Confirmar" ||
+              'Confirmar' ||
             body.entry[0].changes[0].value.messages[0].button.payload ===
-              "Desmarcar"
+              'Desmarcar'
           ) {
             const status =
               (await body.entry[0].changes[0].value.messages[0].button
-                .payload) === "Confirmar"
-                ? "c"
-                : "d";
+                .payload) === 'Confirmar'
+                ? 'c'
+                : 'd';
             const idCliente = await new MessageService().getIdCliente(
-              body.entry[0].changes[0].value.messages[0].context.id
+              body.entry[0].changes[0].value.messages[0].context.id,
             );
             const dadosCliente = (await idCliente.rows[0])
               ? await new MessageService().getClienteById(
-                  idCliente.rows[0].idcliente
+                  idCliente.rows[0].idcliente,
                 )
               : null;
             const token =
@@ -1666,8 +1690,8 @@ exports.postWebhook = async (req, res, next) => {
                 verifyStatus(
                   status,
                   req.body.entry[0].changes[0].value.messages[0].context.id,
-                  dadosCliente
-                )
+                  dadosCliente,
+                ),
               );
               // if (status === 'd') {
               //   enviaPergunta(
@@ -1681,20 +1705,20 @@ exports.postWebhook = async (req, res, next) => {
             }
           } else if (
             body.entry[0].changes[0].value.messages[0].button.payload ===
-              "Sim" ||
-            body.entry[0].changes[0].value.messages[0].button.payload === "Não"
+              'Sim' ||
+            body.entry[0].changes[0].value.messages[0].button.payload === 'Não'
           ) {
             const resposta =
               (await body.entry[0].changes[0].value.messages[0].button
-                .payload) === "Sim"
-                ? "s"
-                : "n";
+                .payload) === 'Sim'
+                ? 's'
+                : 'n';
             const idCliente = await new MessageService().getIdClienteContato(
-              body.entry[0].changes[0].value.messages[0].context.id
+              body.entry[0].changes[0].value.messages[0].context.id,
             );
             const dadosCliente = (await idCliente.rows[0])
               ? await new MessageService().getClienteById(
-                  idCliente.rows[0].idcliente
+                  idCliente.rows[0].idcliente,
                 )
               : null;
             const token =
@@ -1709,28 +1733,28 @@ exports.postWebhook = async (req, res, next) => {
                 from,
                 verificaResposta(
                   resposta,
-                  req.body.entry[0].changes[0].value.messages[0].context.id
-                )
+                  req.body.entry[0].changes[0].value.messages[0].context.id,
+                ),
               );
             }
           } else if (
             body.entry[0].changes[0].value.messages[0].button.payload ===
-              "Responder pesquisa" ||
+              'Responder pesquisa' ||
             body.entry[0].changes[0].value.messages[0].button.payload ===
-              "Não responder"
+              'Não responder'
           ) {
             const resposta =
               (await body.entry[0].changes[0].value.messages[0].button
-                .payload) === "Responder pesquisa"
-                ? "rp"
-                : "nr";
+                .payload) === 'Responder pesquisa'
+                ? 'rp'
+                : 'nr';
             console.log(resposta);
             const idCliente = await new MessageService().getIdClientePesquisa(
-              body.entry[0].changes[0].value.messages[0].context.id
+              body.entry[0].changes[0].value.messages[0].context.id,
             );
             const dadosCliente = (await idCliente.rows[0])
               ? await new MessageService().getClienteById(
-                  idCliente.rows[0].idcliente
+                  idCliente.rows[0].idcliente,
                 )
               : null;
             const token =
@@ -1745,16 +1769,16 @@ exports.postWebhook = async (req, res, next) => {
                 from,
                 verificaResposta(
                   resposta,
-                  req.body.entry[0].changes[0].value.messages[0].context.id
-                )
+                  req.body.entry[0].changes[0].value.messages[0].context.id,
+                ),
               );
-              if (resposta === "rp") {
+              if (resposta === 'rp') {
                 enviaPesquisa(
                   phone_number_id,
                   token,
                   from,
                   req.body.entry[0].changes[0].value.messages[0].context.id,
-                  res
+                  res,
                 );
               }
             }
@@ -1762,24 +1786,24 @@ exports.postWebhook = async (req, res, next) => {
         } else if (body.entry[0].changes[0].value.messages[0].interactive) {
           if (
             body.entry[0].changes[0].value.messages[0].interactive.list_reply
-              .id === "1" ||
+              .id === '1' ||
             body.entry[0].changes[0].value.messages[0].interactive.list_reply
-              .id === "2" ||
+              .id === '2' ||
             body.entry[0].changes[0].value.messages[0].interactive.list_reply
-              .id === "3" ||
+              .id === '3' ||
             body.entry[0].changes[0].value.messages[0].interactive.list_reply
-              .id === "4" ||
+              .id === '4' ||
             body.entry[0].changes[0].value.messages[0].interactive.list_reply
-              .id === "5"
+              .id === '5'
           ) {
             const resposta = await body.entry[0].changes[0].value.messages[0]
               .interactive.list_reply.id;
             const idCliente = await new MessageService().getIdClienteNota(
-              body.entry[0].changes[0].value.messages[0].context.id
+              body.entry[0].changes[0].value.messages[0].context.id,
             );
             const dadosCliente = (await idCliente.rows[0])
               ? await new MessageService().getClienteById(
-                  idCliente.rows[0].idcliente
+                  idCliente.rows[0].idcliente,
                 )
               : null;
             const token =
@@ -1794,8 +1818,8 @@ exports.postWebhook = async (req, res, next) => {
                 from,
                 verificaResposta(
                   resposta,
-                  req.body.entry[0].changes[0].value.messages[0].context.id
-                )
+                  req.body.entry[0].changes[0].value.messages[0].context.id,
+                ),
               );
             }
           }
@@ -1806,7 +1830,7 @@ exports.postWebhook = async (req, res, next) => {
             ? await dadosCliente.rows[0].tokenwhatsapp
             : null;
           const mensagem =
-            "Não entendi, por favor siga as instruções da mensagem anterior.";
+            'Não entendi, por favor siga as instruções da mensagem anterior.';
           if (token) {
             enviaResposta(phone_number_id, token, from, mensagem);
           }
@@ -1822,11 +1846,11 @@ exports.postWebhook = async (req, res, next) => {
 };
 
 exports.getwebhook = async (req, res) => {
-  const challenge = req.query["hub.challenge"];
-  const verify_token = req.query["hub.verify_token"];
+  const challenge = req.query['hub.challenge'];
+  const verify_token = req.query['hub.verify_token'];
 
   if (verify_token === process.env.VERIFY_TOKEN) {
     return res.status(200).send(challenge); // Just the challenge
   }
-  return res.status(400).send({ message: "Bad request!" });
+  return res.status(400).send({ message: 'Bad request!' });
 };
