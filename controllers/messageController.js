@@ -169,7 +169,7 @@ async function enviaMensagemToken(
         to: body.telefone,
         type: "template",
         template: {
-          name: "aviso_token",
+          name: "aviso_token_backup",
           language: {
             code: "pt_BR",
             policy: "deterministic",
@@ -180,7 +180,9 @@ async function enviaMensagemToken(
               parameters: [
                 {
                   type: "text",
-                  text: body.paciente,
+                  text: agendamento.responsavel
+                    ? agendamento.responsavel
+                    : "---",
                 },
                 {
                   type: "text",
@@ -189,6 +191,16 @@ async function enviaMensagemToken(
                 {
                   type: "text",
                   text: body.paciente,
+                },
+                {
+                  type: "text",
+                  text: data,
+                },
+                {
+                  type: "text",
+                  text: agendamento.senha_autorizacao
+                    ? agendamento.senha_autorizacao
+                    : "---",
                 },
                 {
                   type: "text",
