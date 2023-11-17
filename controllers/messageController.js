@@ -4,9 +4,10 @@ const axios = require("axios");
 const { criaJwt } = require("../auth/verificaJWT.js");
 const crypto = require("crypto");
 
-const secretKey = Buffer.from(crypto.randomBytes(32));
-// const secretKey = crypto.createHash("sha256").update("token123@abc").digest();
-const iv = crypto.randomBytes(16);
+// const secretKey = Buffer.from(crypto.randomBytes(32));
+const secretKey = "J#v8Lw$u2xRn*G@5FhQyD9p!sZm@K#o7";
+// const iv = crypto.randomBytes(16);
+const iv = "A9b#4fGh2PqL7sR1";
 
 async function enviaMensagem(
   idTelefone,
@@ -61,7 +62,9 @@ async function enviaMensagem(
                   text:
                     agendamento.empresa_unidade +
                     " - " +
-                    agendamento.empresa_endereco,
+                    agendamento.empresa_endereco +
+                    " " +
+                    agendamento.empresa_complemento,
                 },
                 {
                   type: "text",
@@ -815,6 +818,19 @@ async function enviaPesquisa(num, token, para, idMensagem, res) {
   }
 }
 
+async function verificaData(nomeSchema, idServico) {
+  const servico = await new MessageService().getClienteServicoUnico(
+    nomeSchema,
+    idServico
+  );
+  const dataFinal = await servico.rows[0].data_fim;
+  const dataAtual = new Date();
+  if (dataFinal >= dataAtual || dataFinal === null) {
+    return true;
+  } else {
+    return false;
+  }
+}
 exports.get = async (req, res, next) => {
   try {
     const body = await req.body;
@@ -1298,65 +1314,72 @@ exports.postCliente = async (req, res, next) => {
 exports.postMessage = async (req, res, next) => {
   try {
     let body = await req.body;
-    let dadosCliente = await new MessageService().getClienteBySchema(
-      Array.isArray(body) ? body[0].nome_schema : body.nome_schema
-    );
-    let token = await dadosCliente.rows[0].tokenwhatsapp;
-    let idTelefone = await dadosCliente.rows[0].idtelefonewhatsapp;
-    let idCliente = await dadosCliente.rows[0].id;
-    if (res.status(200)) {
-      if (!Array.isArray(body)) {
-        body.agendamento.map(async (agendamento) => {
-          await enviaMensagem(
-            idTelefone,
-            token,
-            idCliente,
-            body,
-            agendamento,
-            dadosCliente,
-            res
-          );
-        });
-      } else {
-        try {
-          body.forEach(async (data, i) => {
-            try {
-              setTimeout(async () => {
-                try {
-                  await data.agendamento.map((agendamento, j) => {
-                    setTimeout(async () => {
-                      try {
-                        await enviaMensagem(
-                          idTelefone,
-                          token,
-                          idCliente,
-                          data,
-                          agendamento,
-                          dadosCliente,
-                          res
-                        );
-                      } catch (e) {
-                        console.log(e.message);
-                        next(e);
-                      }
-                    }, i * 1000 + j * 1000);
-                  });
-                } catch (e) {
-                  console.log(error);
-                  next(e);
-                }
-              }, i * 1000);
-            } catch (e) {
-              console.log(e.message);
-            }
+    if (await verificaData(body[0].nome_schema, 1)) {
+      let dadosCliente = await new MessageService().getClienteBySchema(
+        Array.isArray(body) ? body[0].nome_schema : body.nome_schema
+      );
+      let token = await dadosCliente.rows[0].tokenwhatsapp;
+      let idTelefone = await dadosCliente.rows[0].idtelefonewhatsapp;
+      let idCliente = await dadosCliente.rows[0].id;
+      if (res.status(200)) {
+        if (!Array.isArray(body)) {
+          body.agendamento.map(async (agendamento) => {
+            await enviaMensagem(
+              idTelefone,
+              token,
+              idCliente,
+              body,
+              agendamento,
+              dadosCliente,
+              res
+            );
           });
-        } catch (e) {
-          console.log(e.message);
-          next(e);
+        } else {
+          try {
+            body.forEach(async (data, i) => {
+              try {
+                setTimeout(async () => {
+                  try {
+                    await data.agendamento.map((agendamento, j) => {
+                      setTimeout(async () => {
+                        try {
+                          await enviaMensagem(
+                            idTelefone,
+                            token,
+                            idCliente,
+                            data,
+                            agendamento,
+                            dadosCliente,
+                            res
+                          );
+                        } catch (e) {
+                          console.log(e.message);
+                          next(e);
+                        }
+                      }, i * 1000 + j * 1000);
+                    });
+                  } catch (e) {
+                    console.log(error);
+                    next(e);
+                  }
+                }, i * 1000);
+              } catch (e) {
+                console.log(e.message);
+              }
+            });
+          } catch (e) {
+            console.log(e.message);
+            next(e);
+          }
         }
       }
+      res.sendStatus(200);
+    } else {
+      res.status(401).send({
+        message:
+          "Cliente com serviço já encerrado. Verificar data fim do serviço no cadastro do cliente.",
+      });
     }
-    res.sendStatus(200);
   } catch (error) {
     console.log("Erro no Envio da mensagem de confirmação!");
     res.status(400).send({
@@ -1682,10 +1705,16 @@ exports.postRegistroToken = async (req, res, next) => {
   try {
     const body = req.body;
     const param = decodeURIComponent(body.param);
+    // const decipher = crypto.createDecipheriv(
+    //   "aes-256-cbc",
+    //   Buffer.from(secretKey),
+    //   Buffer.from(iv, "base64")
+    // );
     const decipher = crypto.createDecipheriv(
       "aes-256-cbc",
-      Buffer.from(secretKey),
-      Buffer.from(iv, "base64")
+      secretKey,
+      iv,
+      "base64"
     );
     let parametroDecifrado = decipher.update(param, "base64", "utf8");
     parametroDecifrado += decipher.final("utf8");
