@@ -15,6 +15,11 @@ router.post(
   messageController.postCliente,
 );
 router.post(
+  '/criaratualizarperguntas',
+  authenticate,
+  messageController.postPerguntaCliente,
+);
+router.post(
   '/verificacadastro',
   authenticate,
   messageController.getClienteServico,

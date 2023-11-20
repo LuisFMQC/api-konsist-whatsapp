@@ -28,6 +28,7 @@ router.post(
   authenticate,
   messageController.postEnvioAniversario,
 );
-router.post("/recaptacao", authenticate, messageController.postEnvioRecaptacao);
+router.post('/avulsa', authenticate, messageController.postEnvioAvulso);
+router.post('/recaptacao', authenticate, messageController.postEnvioRecaptacao);
 
 module.exports = router;

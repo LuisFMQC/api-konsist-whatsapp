@@ -1,4 +1,4 @@
-const db = require("../conexao");
+const db = require('../conexao');
 
 class MessageRepository {
   async getTokenKonsist(id, schema) {
@@ -8,7 +8,7 @@ class MessageRepository {
       db.query(query, [id, schema], (erro, result) => {
         if (erro) {
           console.log(erro);
-          return reject("Erro:" + erro);
+          return reject('Erro:' + erro);
         }
         return resolve(result);
       });
@@ -22,7 +22,7 @@ class MessageRepository {
       db.query(query, [dadosMensagens.id, idCliente], (erro, result) => {
         if (erro) {
           console.log(erro);
-          return reject("Erro:" + erro);
+          return reject('Erro:' + erro);
         }
         return resolve(result);
       });
@@ -36,7 +36,7 @@ class MessageRepository {
       db.query(query, [dadosMensagens.id, idCliente], (erro, result) => {
         if (erro) {
           console.log(erro);
-          return reject("Erro:" + erro);
+          return reject('Erro:' + erro);
         }
         return resolve(result);
       });
@@ -50,7 +50,7 @@ class MessageRepository {
       db.query(query, [dadosMensagens.chave, idCliente], (erro, result) => {
         if (erro) {
           console.log(erro);
-          return reject("Erro:" + erro);
+          return reject('Erro:' + erro);
         }
         return resolve(result);
       });
@@ -64,7 +64,7 @@ class MessageRepository {
       db.query(query, [dadosMensagens.id, idCliente], (erro, result) => {
         if (erro) {
           console.log(erro);
-          return reject("Erro:" + erro);
+          return reject('Erro:' + erro);
         }
         return resolve(result);
       });
@@ -78,7 +78,7 @@ class MessageRepository {
       db.query(query, [idConversa], (erro, result) => {
         if (erro) {
           console.log(erro);
-          return reject("Erro:" + erro);
+          return reject('Erro:' + erro);
         }
         return resolve(result);
       });
@@ -91,7 +91,7 @@ class MessageRepository {
       db.query(query, [idConversa], (erro, result) => {
         if (erro) {
           console.log(erro);
-          return reject("Erro:" + erro);
+          return reject('Erro:' + erro);
         }
         return resolve(result);
       });
@@ -106,7 +106,7 @@ class MessageRepository {
       db.query(query, [id, idCliente], (erro, result) => {
         if (erro) {
           console.log(erro);
-          return reject("Erro:" + erro);
+          return reject('Erro:' + erro);
         }
         return resolve(result);
       });
@@ -124,10 +124,10 @@ class MessageRepository {
         (erro, result) => {
           if (erro) {
             console.log(erro);
-            return reject("Erro:" + erro);
+            return reject('Erro:' + erro);
           }
           return resolve(result);
-        }
+        },
       );
     });
     return dados;
@@ -143,10 +143,10 @@ class MessageRepository {
         (erro, result) => {
           if (erro) {
             console.log(erro);
-            return reject("Erro:" + erro);
+            return reject('Erro:' + erro);
           }
           return resolve(result);
-        }
+        },
       );
     });
     return dados;
@@ -159,7 +159,7 @@ class MessageRepository {
       db.query(query, [id, chave], (erro, result) => {
         if (erro) {
           console.log(erro);
-          return reject("Erro:" + erro);
+          return reject('Erro:' + erro);
         }
         return resolve(result);
       });
@@ -174,7 +174,7 @@ class MessageRepository {
       db.query(query, [id, chave], (erro, result) => {
         if (erro) {
           console.log(erro);
-          return reject("Erro:" + erro);
+          return reject('Erro:' + erro);
         }
         return resolve(result);
       });
@@ -192,10 +192,10 @@ class MessageRepository {
         (erro, result) => {
           if (erro) {
             console.log(erro);
-            return reject("Erro:" + erro);
+            return reject('Erro:' + erro);
           }
           return resolve(result);
-        }
+        },
       );
     });
     return dados;
@@ -208,7 +208,7 @@ class MessageRepository {
       db.query(query, [code], (erro, result) => {
         if (erro) {
           console.log(erro);
-          return reject("Erro:" + erro);
+          return reject('Erro:' + erro);
         }
         return resolve(result);
       });
@@ -224,7 +224,7 @@ class MessageRepository {
       db.query(query, [code], (erro, result) => {
         if (erro) {
           console.log(erro);
-          return reject("Erro:" + erro);
+          return reject('Erro:' + erro);
         }
         return resolve(result);
       });
@@ -239,7 +239,7 @@ class MessageRepository {
       db.query(query, [code], (erro, result) => {
         if (erro) {
           console.log(erro);
-          return reject("Erro:" + erro);
+          return reject('Erro:' + erro);
         }
         return resolve(result);
       });
@@ -255,7 +255,7 @@ class MessageRepository {
       db.query(query, [code], (erro, result) => {
         if (erro) {
           console.log(erro);
-          return reject("Erro:" + erro);
+          return reject('Erro:' + erro);
         }
         return resolve(result);
       });
@@ -265,14 +265,14 @@ class MessageRepository {
   }
 
   async getRegistroCobrado(idCliente, contato) {
-    const interval = "24 hours";
+    const interval = '24 hours';
     const query =
-      "SELECT * FROM envioscobrados WHERE idcliente = $1 AND contato = $2 AND datainclusao >= NOW() - $3::INTERVAL";
+      'SELECT * FROM envioscobrados WHERE idcliente = $1 AND contato = $2 AND datainclusao >= NOW() - $3::INTERVAL';
     const dados = await new Promise((resolve, reject) => {
       db.query(query, [idCliente, contato, interval], (erro, result) => {
         if (erro) {
           console.log(erro);
-          return reject("Erro ao listar Registros!");
+          return reject('Erro ao listar Registros!');
         }
         return resolve(result);
       });
@@ -283,12 +283,12 @@ class MessageRepository {
 
   async getServicoCliente(idServico, idCliente) {
     const query =
-      "SELECT * FROM cliente_servico WHERE id_servico = $1 AND id_cliente = $2";
+      'SELECT * FROM cliente_servico WHERE id_servico = $1 AND id_cliente = $2';
     const dados = await new Promise((resolve, reject) => {
       db.query(query, [idServico, idCliente], (erro, result) => {
         if (erro) {
           console.log(erro);
-          return reject("Erro ao listar Registros!");
+          return reject('Erro ao listar Registros!');
         }
         return resolve(result);
       });
@@ -317,10 +317,10 @@ class MessageRepository {
         (erro, result) => {
           if (erro) {
             console.log(erro);
-            return reject("Erro ao cadastrar registro cobrado!");
+            return reject('Erro ao cadastrar registro cobrado!');
           }
           return resolve(result);
-        }
+        },
       );
     });
 
@@ -348,10 +348,10 @@ class MessageRepository {
         (erro, result) => {
           if (erro) {
             console.log(erro);
-            return reject("Erro ao listar medico!");
+            return reject('Erro ao listar medico!');
           }
           return resolve(result);
-        }
+        },
       );
     });
 
@@ -362,7 +362,7 @@ class MessageRepository {
     dadosPaciente,
     dadosAgendamento,
     idCliente,
-    code
+    code,
   ) {
     const query =
       'INSERT INTO "avisobloqueio" ( "chave", "idcliente", "contato", "idconversa", "data_atendimento", "hora_atendimento", "nomepaciente", "medico", "localatendimento" ) VALUES ( $1, $2, $3, $4, $5, $6, $7, $8, $9 )';
@@ -383,10 +383,10 @@ class MessageRepository {
         (erro, result) => {
           if (erro) {
             console.log(erro);
-            return reject("Erro ao listar medico!");
+            return reject('Erro ao listar medico!');
           }
           return resolve(result);
-        }
+        },
       );
     });
 
@@ -402,10 +402,10 @@ class MessageRepository {
         (erro, result) => {
           if (erro) {
             console.log(erro);
-            return reject("Erro ao Cadastrar Mensagem de aniversário!");
+            return reject('Erro ao Cadastrar Mensagem de aniversário!');
           }
           return resolve(result);
-        }
+        },
       );
     });
 
@@ -421,10 +421,35 @@ class MessageRepository {
         (erro, result) => {
           if (erro) {
             console.log(erro);
-            return reject("Erro ao Cadastrar Mensagem de aniversário!");
+            return reject('Erro ao Cadastrar Mensagem de aniversário!');
           }
           return resolve(result);
-        }
+        },
+      );
+    });
+
+    return dados;
+  }
+  async postDadosEnvioAvulso(dadosPaciente, idCliente, code) {
+    const query =
+      'INSERT INTO "envios_avulsos" ( "idcliente", "contato", "idconversa","mensagem", "nomepaciente" ) VALUES ( $1, $2, $3, $4, $5)';
+    const dados = await new Promise((resolve, reject) => {
+      db.query(
+        query,
+        [
+          idCliente,
+          dadosPaciente.telefone,
+          code,
+          dadosPaciente.mensagem,
+          dadosPaciente.paciente,
+        ],
+        (erro, result) => {
+          if (erro) {
+            console.log(erro);
+            return reject('Erro ao Cadastrar Mensagem de aniversário!');
+          }
+          return resolve(result);
+        },
       );
     });
 
@@ -440,10 +465,10 @@ class MessageRepository {
         (erro, result) => {
           if (erro) {
             console.log(erro);
-            return reject("Erro ao Cadastrar Mensagem de aniversário!");
+            return reject('Erro ao Cadastrar Mensagem de aniversário!');
           }
           return resolve(result);
-        }
+        },
       );
     });
 
@@ -470,10 +495,10 @@ class MessageRepository {
         (erro, result) => {
           if (erro) {
             console.log(erro);
-            return reject("Erro ao listar medico!");
+            return reject('Erro ao listar medico!');
           }
           return resolve(result);
-        }
+        },
       );
     });
 
@@ -501,10 +526,10 @@ class MessageRepository {
         (erro, result) => {
           if (erro) {
             console.log(erro);
-            return reject("Erro ao listar medico!");
+            return reject('Erro ao listar medico!');
           }
           return resolve(result);
-        }
+        },
       );
     });
 
@@ -514,7 +539,7 @@ class MessageRepository {
     dadosPaciente,
     dadosAgendamento,
     idCliente,
-    code
+    code,
   ) {
     const query =
       'INSERT INTO "enviospesquisa" ( "chave", "idcliente", "contato", "idconversa", "data_atendimento", "hora_atendimento", "nomepaciente", "medico", "localatendimento" ) VALUES ( $1, $2, $3, $4, $5, $6, $7, $8, $9 )';
@@ -535,10 +560,10 @@ class MessageRepository {
         (erro, result) => {
           if (erro) {
             console.log(erro);
-            return reject("Erro ao listar medico!");
+            return reject('Erro ao listar medico!');
           }
           return resolve(result);
-        }
+        },
       );
     });
 
@@ -564,10 +589,10 @@ class MessageRepository {
         (erro, result) => {
           if (erro) {
             console.log(erro);
-            return reject("Erro ao listar medico!");
+            return reject('Erro ao listar medico!');
           }
           return resolve(result);
-        }
+        },
       );
     });
 
@@ -597,10 +622,10 @@ class MessageRepository {
         (erro, result) => {
           if (erro) {
             console.log(erro);
-            return reject("Erro ao listar medico!");
+            return reject('Erro ao listar medico!');
           }
           return resolve(result);
-        }
+        },
       );
     });
 
@@ -628,10 +653,10 @@ class MessageRepository {
         (erro, result) => {
           if (erro) {
             console.log(erro);
-            return reject("Erro ao listar medico!");
+            return reject('Erro ao listar medico!');
           }
           return resolve(result);
-        }
+        },
       );
     });
 
@@ -654,10 +679,10 @@ class MessageRepository {
         (erro, result) => {
           if (erro) {
             console.log(erro);
-            return reject("Erro ao listar medico!");
+            return reject('Erro ao listar medico!');
           }
           return resolve(result);
-        }
+        },
       );
     });
 
@@ -684,10 +709,10 @@ class MessageRepository {
         (erro, result) => {
           if (erro) {
             console.log(erro);
-            return reject("Erro ao listar medico!");
+            return reject('Erro ao listar medico!');
           }
           return resolve(result);
-        }
+        },
       );
     });
 
@@ -704,10 +729,10 @@ class MessageRepository {
         (erro, result) => {
           if (erro) {
             console.log(erro);
-            return reject("Erro:" + erro);
+            return reject('Erro:' + erro);
           }
           return resolve(result);
-        }
+        },
       );
     });
 
@@ -724,10 +749,10 @@ class MessageRepository {
         (erro, result) => {
           if (erro) {
             console.log(erro);
-            return reject("Erro:" + erro);
+            return reject('Erro:' + erro);
           }
           return resolve(result);
-        }
+        },
       );
     });
 
@@ -741,7 +766,7 @@ class MessageRepository {
       db.query(query, [resposta, code], (erro, result) => {
         if (erro) {
           console.log(erro);
-          return reject("Erro:" + erro);
+          return reject('Erro:' + erro);
         }
         return resolve(result);
       });
@@ -757,7 +782,7 @@ class MessageRepository {
       db.query(query, [status, code], (erro, result) => {
         if (erro) {
           console.log(erro);
-          return reject("Erro:" + erro);
+          return reject('Erro:' + erro);
         }
         return resolve(result);
       });
@@ -772,7 +797,7 @@ class MessageRepository {
       db.query(query, [code], (erro, result) => {
         if (erro) {
           console.log(erro);
-          return reject("Erro:" + erro);
+          return reject('Erro:' + erro);
         }
         return resolve(result);
       });
@@ -790,10 +815,10 @@ class MessageRepository {
         (erro, result) => {
           if (erro) {
             console.log(erro);
-            return reject("Erro:" + erro);
+            return reject('Erro:' + erro);
           }
           return resolve(result);
-        }
+        },
       );
     });
 
@@ -806,7 +831,7 @@ class MessageRepository {
       db.query(query, [code], (erro, result) => {
         if (erro) {
           console.log(erro);
-          return reject("Erro:" + erro);
+          return reject('Erro:' + erro);
         }
         return resolve(result);
       });
@@ -821,7 +846,7 @@ class MessageRepository {
       db.query(query, [schema], (erro, result) => {
         if (erro) {
           console.log(erro);
-          return reject("Erro:" + erro);
+          return reject('Erro:' + erro);
         }
         return resolve(result);
       });
@@ -836,7 +861,7 @@ class MessageRepository {
       db.query(query, [code], (erro, result) => {
         if (erro) {
           console.log(erro);
-          return reject("Erro:" + erro);
+          return reject('Erro:' + erro);
         }
         return resolve(result);
       });
@@ -846,12 +871,12 @@ class MessageRepository {
   }
   async getClienteServico(code) {
     const query =
-      "SELECT * FROM cliente AS a JOIN cliente_servico AS c ON a.id = c.id_cliente WHERE a.nome_schema = $1";
+      'SELECT * FROM cliente AS a JOIN cliente_servico AS c ON a.id = c.id_cliente WHERE a.nome_schema = $1';
     const dados = await new Promise((resolve, reject) => {
       db.query(query, [code], (erro, result) => {
         if (erro) {
           console.log(erro);
-          return reject("Erro:" + erro);
+          return reject('Erro:' + erro);
         }
         return resolve(result);
       });
@@ -861,12 +886,12 @@ class MessageRepository {
   }
   async getClientePergunta(code) {
     const query =
-      "SELECT * FROM cliente AS a JOIN cliente_pergunta AS c ON a.id = c.id_cliente WHERE a.nome_schema = $1";
+      'SELECT * FROM cliente AS a JOIN cliente_pergunta AS c ON a.id = c.id_cliente WHERE a.nome_schema = $1';
     const dados = await new Promise((resolve, reject) => {
       db.query(query, [code], (erro, result) => {
         if (erro) {
           console.log(erro);
-          return reject("Erro:" + erro);
+          return reject('Erro:' + erro);
         }
         return resolve(result);
       });
@@ -876,12 +901,12 @@ class MessageRepository {
   }
   async getClientePerguntaUnica(code) {
     const query =
-      "SELECT * FROM cliente AS a JOIN cliente_pergunta AS c ON a.id = c.id_cliente WHERE a.nome_schema = $1 AND c.id = $2";
+      'SELECT * FROM cliente AS a JOIN cliente_pergunta AS c ON a.id = c.id_cliente WHERE a.nome_schema = $1 AND c.id = $2';
     const dados = await new Promise((resolve, reject) => {
       db.query(query, [code], (erro, result) => {
         if (erro) {
           console.log(erro);
-          return reject("Erro:" + erro);
+          return reject('Erro:' + erro);
         }
         return resolve(result);
       });
@@ -891,12 +916,12 @@ class MessageRepository {
   }
   async getClienteServicoUnico(nomeSchema, idServico) {
     const query =
-      "SELECT * FROM cliente AS a JOIN cliente_servico AS c ON a.id = c.id_cliente WHERE a.nome_schema = $1 AND c.id_servico = $2";
+      'SELECT * FROM cliente AS a JOIN cliente_servico AS c ON a.id = c.id_cliente WHERE a.nome_schema = $1 AND c.id_servico = $2';
     const dados = await new Promise((resolve, reject) => {
       db.query(query, [nomeSchema, idServico], (erro, result) => {
         if (erro) {
           console.log(erro);
-          return reject("Erro:" + erro);
+          return reject('Erro:' + erro);
         }
         return resolve(result);
       });
@@ -922,10 +947,10 @@ class MessageRepository {
         (erro, result) => {
           if (erro) {
             console.log(erro);
-            return reject("Erro:" + erro);
+            return reject('Erro:' + erro);
           }
           return resolve(result);
-        }
+        },
       );
     });
 
@@ -937,7 +962,7 @@ class MessageRepository {
       db.query(query, [descricao], (erro, result) => {
         if (erro) {
           console.log(erro);
-          return reject("Erro:" + erro);
+          return reject('Erro:' + erro);
         }
         return resolve(result);
       });
@@ -962,10 +987,10 @@ class MessageRepository {
         (erro, result) => {
           if (erro) {
             console.log(erro);
-            return reject("Erro:" + erro);
+            return reject('Erro:' + erro);
           }
           return resolve(result);
-        }
+        },
       );
     });
 
@@ -981,10 +1006,10 @@ class MessageRepository {
         (erro, result) => {
           if (erro) {
             console.log(erro);
-            return reject("Erro:" + erro);
+            return reject('Erro:' + erro);
           }
           return resolve(result);
-        }
+        },
       );
     });
 
@@ -998,7 +1023,7 @@ class MessageRepository {
       db.query(query, [code], (erro, result) => {
         if (erro) {
           console.log(erro);
-          return reject("Erro:" + erro);
+          return reject('Erro:' + erro);
         }
         return resolve(result);
       });
@@ -1013,7 +1038,7 @@ class MessageRepository {
       db.query(query, [code], (erro, result) => {
         if (erro) {
           console.log(erro);
-          return reject("Erro:" + erro);
+          return reject('Erro:' + erro);
         }
         return resolve(result);
       });
@@ -1029,7 +1054,7 @@ class MessageRepository {
       db.query(query, [code], (erro, result) => {
         if (erro) {
           console.log(erro);
-          return reject("Erro:" + erro);
+          return reject('Erro:' + erro);
         }
         return resolve(result);
       });
@@ -1044,7 +1069,7 @@ class MessageRepository {
       db.query(query, [code], (erro, result) => {
         if (erro) {
           console.log(erro);
-          return reject("Erro:" + erro);
+          return reject('Erro:' + erro);
         }
         return resolve(result);
       });
@@ -1054,12 +1079,12 @@ class MessageRepository {
   }
 
   async getServicos() {
-    const query = "SELECT * FROM servico";
+    const query = 'SELECT * FROM servico';
     const dados = await new Promise((resolve, reject) => {
       db.query(query, (erro, result) => {
         if (erro) {
           console.log(erro);
-          return reject("Erro:" + erro);
+          return reject('Erro:' + erro);
         }
         return resolve(result);
       });
@@ -1072,12 +1097,12 @@ class MessageRepository {
     const client = await db.connect();
 
     try {
-      await client.query("BEGIN");
+      await client.query('BEGIN');
 
       const queryVerificaCliente =
         'SELECT * FROM "cliente" WHERE "nome_schema" = $1';
       const queryVerificaServico =
-        "SELECT * FROM cliente_servico WHERE id_servico = $1 AND id_cliente = $2";
+        'SELECT * FROM cliente_servico WHERE id_servico = $1 AND id_cliente = $2';
       const queryClienteCriar =
         'INSERT INTO "cliente" ( "nome", "idcliente", "nome_schema", "idtelefonewhatsapp", "tokenwhatsapp", "contato" ) VALUES ( $1, $2, $3, $4, $5, $6 ) RETURNING id';
       const queryClienteAtualizar =
@@ -1094,7 +1119,7 @@ class MessageRepository {
       let id;
       let mensagem;
       if (clienteCadastrado.rows[0]) {
-        mensagem = "Cliente atualizado com sucesso.";
+        mensagem = 'Cliente atualizado com sucesso.';
         const clienteAntigo = await client.query(queryClienteAtualizar, [
           dadosCliente.idtelefonewhatsapp,
           dadosCliente.tokenwhatsapp,
@@ -1104,7 +1129,7 @@ class MessageRepository {
         ]);
         id = clienteAntigo.rows[0].id;
       } else {
-        mensagem = "Cliente cadastrado com sucesso.";
+        mensagem = 'Cliente cadastrado com sucesso.';
         const novoCliente = await client.query(queryClienteCriar, [
           dadosCliente.nome,
           dadosCliente.idcliente,
@@ -1138,57 +1163,60 @@ class MessageRepository {
         }
       }
 
-      await client.query("COMMIT");
+      await client.query('COMMIT');
 
       return {
         id: id,
         mensagem: mensagem,
       };
     } catch (error) {
-      await client.query("ROLLBACK");
-      console.error("Erro na transação:", error);
+      await client.query('ROLLBACK');
+      console.error('Erro na transação:', error);
       throw error;
     } finally {
       client.release();
     }
   }
 
-  async insertPerguntaCliente(dadosCliente, perguntas) {
+  async insertPerguntaCliente(nomeSchema, perguntas) {
     const client = await db.connect();
 
     try {
-      await client.query("BEGIN");
+      await client.query('BEGIN');
 
       const queryVerificaCliente =
         'SELECT * FROM "cliente" WHERE "nome_schema" = $1';
       const queryVerificaPergunta =
-        "SELECT * FROM cliente_pergunta WHERE id_pergunta = $1 AND id_cliente = $2";
+        'SELECT * FROM cliente_pergunta WHERE id_pergunta = $1 AND id_cliente = $2';
       const queryPerguntaCriar =
         'INSERT INTO "cliente_pergunta" ( "id_pergunta", "id_cliente", "pergunta", "ordem", "ativo") VALUES ( $1, $2, $3, $4, $5 )';
       const queryPerguntaAtualizar =
-        'UPDATE "cliente_pergunta" SET "pergunta" = $1, "ordem" = $2, "ativo" = $3 WHERE "id_cliente" = $4 AND "id_servico" = $5';
+        'UPDATE "cliente_pergunta" SET "pergunta" = $1, "ordem" = $2, "ativo" = $3 WHERE "id_cliente" = $4 AND "id_pergunta" = $5';
 
       const clienteCadastrado = await client.query(queryVerificaCliente, [
-        dadosCliente.nome_schema,
+        nomeSchema,
       ]);
-
       let id;
-      let mensagem;
+      let mensagem = 'Perguntas cadastradas ou atualizadas com sucesso!';
+      id = (await clienteCadastrado.rows[0])
+        ? clienteCadastrado.rows[0].id
+        : null;
 
       for (const pergunta of perguntas) {
-        const perguntaCadastrado = await client.query(queryVerificaPergunta, [
+        const perguntaCadastrada = await client.query(queryVerificaPergunta, [
           pergunta.id,
-          clienteCadastrado.rows[0] ? clienteCadastrado.rows[0].id : null,
+          id,
         ]);
-        if (perguntaCadastrado.rows[0]) {
+        if (perguntaCadastrada.rows[0]) {
           await client.query(queryPerguntaAtualizar, [
             pergunta.pergunta,
             pergunta.ordem,
             pergunta.ativo,
-            clienteCadastrado.rows[0].id,
+            id,
             pergunta.id,
           ]);
         } else {
+          console.log('entrou no else');
           await client.query(queryPerguntaCriar, [
             pergunta.id,
             id,
@@ -1198,23 +1226,25 @@ class MessageRepository {
           ]);
         }
       }
+      await client.query('COMMIT');
+      return mensagem;
     } catch (e) {
-      await client.query("ROLLBACK");
-      console.error("Erro na transação:", error);
+      await client.query('ROLLBACK');
+      console.error('Erro na transação:', e);
       throw error;
     } finally {
       client.release();
     }
   }
   async getEnviosCobradosTodos(data_inicio, data_fim) {
-    const dataFimTrat = data_fim + " 23:59:59";
+    const dataFimTrat = data_fim + ' 23:59:59';
     const query =
-      "SELECT c.nome_schema AS schema, c.idcliente AS cnpj, c.nome AS nome_cliente,  COUNT(*) AS total FROM envioscobrados AS e INNER JOIN cliente AS c ON CAST(e.idcliente AS integer) = c.id WHERE e.datainclusao BETWEEN $1 AND $2 GROUP BY e.idcliente, c.nome, c.idcliente, c.nome_schema ORDER BY nome_cliente ASC";
+      'SELECT c.nome_schema AS schema, c.idcliente AS cnpj, c.nome AS nome_cliente,  COUNT(*) AS total FROM envioscobrados AS e INNER JOIN cliente AS c ON CAST(e.idcliente AS integer) = c.id WHERE e.datainclusao BETWEEN $1 AND $2 GROUP BY e.idcliente, c.nome, c.idcliente, c.nome_schema ORDER BY nome_cliente ASC';
     const dados = await new Promise((resolve, reject) => {
       db.query(query, [data_inicio, dataFimTrat], (erro, result) => {
         if (erro) {
           console.log(erro);
-          return reject("Erro:" + erro);
+          return reject('Erro:' + erro);
         }
         return resolve(result);
       });
