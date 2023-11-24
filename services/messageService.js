@@ -65,12 +65,19 @@ class MessageService {
     return this.repository.postNovoRegistroEnvioToken(dados, token);
   }
 
-  async createPesquisa(dadosPaciente, dadosAgendamento, idCliente, code) {
+  async createPesquisa(
+    dadosPaciente,
+    dadosAgendamento,
+    idCliente,
+    code,
+    idPergunta,
+  ) {
     return this.repository.postDadosAtendimentoPesquisa(
       dadosPaciente,
       dadosAgendamento,
       idCliente,
       code,
+      idPergunta,
     );
   }
 

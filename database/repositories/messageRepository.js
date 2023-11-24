@@ -540,9 +540,10 @@ class MessageRepository {
     dadosAgendamento,
     idCliente,
     code,
+    idPergunta,
   ) {
     const query =
-      'INSERT INTO "enviospesquisa" ( "chave", "idcliente", "contato", "idconversa", "data_atendimento", "hora_atendimento", "nomepaciente", "medico", "localatendimento" ) VALUES ( $1, $2, $3, $4, $5, $6, $7, $8, $9 )';
+      'INSERT INTO "enviospesquisa" ( "chave", "idcliente", "contato", "idconversa", "data_atendimento", "hora_atendimento", "nomepaciente", "medico", "localatendimento", "id_local", "idpergunta" ) VALUES ( $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11 )';
     const dados = await new Promise((resolve, reject) => {
       db.query(
         query,
@@ -556,6 +557,8 @@ class MessageRepository {
           dadosPaciente.paciente,
           dadosAgendamento.agendamento_medico,
           dadosAgendamento.empresa_unidade,
+          dadosAgendamento.id_local,
+          idPergunta,
         ],
         (erro, result) => {
           if (erro) {
@@ -1231,7 +1234,56 @@ class MessageRepository {
     } catch (e) {
       await client.query('ROLLBACK');
       console.error('Erro na transação:', e);
-      throw error;
+      throw e;
+    } finally {
+      client.release();
+    }
+  }
+
+  async getProximaPergunta(idConversa) {
+    const client = await db.connect();
+
+    try {
+      await client.query('BEGIN');
+
+      const queryVerificaResposta =
+        'SELECT * FROM enviospesquisa WHERE idconversa = $1';
+      const queryVerificaPerguntaAtualComId =
+        'SELECT * FROM cliente_pergunta WHERE id_pergunta = $1';
+      const queryVerificaProximaPerguntaSemId =
+        'SELECT * FROM cliente_pergunta WHERE id_cliente = $1 ORDER BY ordem ASC LIMIT 1';
+      const queryProximaPergunta =
+        'SELECT * FROM cliente_pergunta WHERE ordem = $1';
+
+      const respostaAtual = await client.query(queryVerificaResposta, [
+        idConversa,
+      ]);
+      let id;
+
+      if (perguntaAtual.rows[0].idpergunta === null) {
+        const proximaPergunta = await client.query(
+          queryVerificaProximaPerguntaSemId,
+          [respostaAtual.rows[0].idcliente],
+        );
+        return proximaPergunta.rows[0];
+      } else {
+        const perguntaAtual = await client.query(
+          queryVerificaPerguntaAtualComId,
+          [perguntaAtual.rows[0].idpergunta],
+        );
+        const ordem = (await perguntaAtual.rows[0].ordem) + 1;
+        const proximaPergunta = await client.query(queryProximaPergunta, [
+          ordem,
+        ]);
+
+        return proximaPergunta;
+      }
+
+      client.query('COMMIT');
+    } catch (e) {
+      client.query('ROLLBACK');
+      console.error('Erro na transação:', e);
+      throw e;
     } finally {
       client.release();
     }

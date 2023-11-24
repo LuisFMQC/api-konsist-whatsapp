@@ -134,6 +134,91 @@ async function enviaMensagem(
   }
 }
 
+async function enviaMensagemPesquisa(
+  idTelefone,
+  token,
+  idCliente,
+  body,
+  agendamento,
+  dadosCliente,
+  res,
+) {
+  const [ano, mes, dia] = agendamento.agendamento_data.split('-');
+  const data = dia + '/' + mes + '/' + ano;
+  try {
+    await axios({
+      method: 'POST',
+      url: `https://graph.facebook.com/v15.0/${idTelefone}/messages?access_token=${token}`,
+      data: {
+        messaging_product: 'whatsapp',
+        to: body.telefone,
+        type: 'template',
+        template: {
+          name: 'pesquisa_de_satisfacao',
+          language: {
+            code: 'pt_BR',
+            policy: 'deterministic',
+          },
+          components: [
+            {
+              type: 'body',
+              parameters: [
+                {
+                  type: 'text',
+                  text: body.paciente,
+                },
+                {
+                  type: 'text',
+                  text: dadosCliente.rows[0].nome,
+                },
+                {
+                  type: 'text',
+                  text: data,
+                },
+              ],
+            },
+          ],
+        },
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      },
+    }).then(async (response) => {
+      if (res.status(200)) {
+        let id = await response.data.messages[0].id;
+        let payload = await new MessageService().createPesquisa(
+          body,
+          agendamento,
+          idCliente,
+          id,
+          null,
+        );
+
+        const consultaRegistroCobrado =
+          await new MessageService().getRegistroCobrado(
+            idCliente,
+            body.telefone,
+          );
+        if (!consultaRegistroCobrado.rows[0]) {
+          await new MessageService().postRegistroCobrado(
+            body,
+            agendamento,
+            idCliente,
+            6,
+          );
+        }
+      }
+    });
+  } catch (e) {
+    let payload = await new MessageService().createMessageFalha(
+      body,
+      agendamento,
+      idCliente,
+    );
+    console.log('Error: ' + e + '/ Telefone: ' + body.telefone);
+  }
+}
+
 async function enviaMensagemToken(
   idTelefone,
   token,
@@ -380,7 +465,10 @@ async function enviaMensagemAvulsa(
                 },
                 {
                   type: 'text',
-                  text: body.mensagem,
+                  text: body.mensagem
+                    .replace(/\n+/g, ' ')
+                    .replace(/\t+/g, ' ')
+                    .replace(/ +/g, ' '),
                 },
                 {
                   type: 'text',
@@ -754,6 +842,14 @@ async function verifyStatus(status, idConversa, dadosCliente) {
 async function verificaResposta(resposta, idConversa) {
   const respostaAut = respostasAceitas[resposta];
   return respostaAut(resposta, idConversa);
+}
+
+async function proximaPergunta(idConversa) {
+  const proximaPergunta = await new MessageService().getProximaPegunta(
+    idConversa,
+  );
+
+  return proximaPergunta;
 }
 
 function verificaBody(req) {
@@ -1293,14 +1389,33 @@ exports.postCliente = async (req, res, next) => {
     const body = await req.body;
     let token_documento;
     let token_agendaweb;
+    let token_link;
+    let token_integracao;
     let mensagemJson;
     let resSend = {
       resposta: mensagemJson,
-      token_documento: token_documento,
-      token_agendaweb: token_agendaweb,
+      // token_documento: token_documento,
+      // token_agendaweb: token_agendaweb,
+      // token_link: token_link,
+      // token_integracao: token_integracao,
     };
 
     async function getToken(schema, id, servico) {
+      const response = await axios({
+        method: 'GET',
+        url: 'https://apikonsist.ngrok.io/gettoken/' + schema,
+      });
+      if (response.status === 200) {
+        const { token } = await response.data;
+        const payload = await new MessageService().updateClienteServico(
+          servico,
+          token,
+          id,
+        );
+        return token;
+      }
+    }
+    async function getTokenDocs(schema, id, servico) {
       const response = await axios({
         method: 'GET',
         url: 'http://18.230.75.177:1415/gettoken/' + schema,
@@ -1316,7 +1431,7 @@ exports.postCliente = async (req, res, next) => {
       }
     }
     const verificaWpp = await body.servicos.map((servico) => {
-      if (servico.id === 1) return true;
+      if (servico.id === '1') return true;
     });
     if (await verificaWpp.includes(true)) {
       if (!body.tokenwhatsapp || !body.idtelefonewhatsapp) {
@@ -1333,11 +1448,23 @@ exports.postCliente = async (req, res, next) => {
 
         const servicos = await Promise.all(
           body.servicos.map(async (servico) => {
-            if (servico.id === 6) {
+            if (servico.id === '2') {
               const token = await getToken(body.nome_schema, id, servico);
-              return { id: servico.id, token_documentos: token };
+              return { id: servico.id, token_link: token };
             }
-            if (servico.id === 1) {
+            if (servico.id === '3') {
+              const token = await getToken(body.nome_schema, id, servico);
+              return { id: servico.id, token_integracao: token };
+            }
+            if (servico.id === '4') {
+              const token = await getToken(body.nome_schema, id, servico);
+              return { id: servico.id, token_agendaweb: token };
+            }
+            if (servico.id === '6') {
+              const token = await getTokenDocs(body.nome_schema, id, servico);
+              return { id: servico.id, token_documento: token };
+            }
+            if (servico.id === '1') {
               const { token_whatsapp } = criaJwt(id, body.nome_schema);
               const payload = await new MessageService().updateClienteServico(
                 servico,
@@ -1348,22 +1475,34 @@ exports.postCliente = async (req, res, next) => {
             return servico;
           }),
         );
-        const token_documentos = servicos.filter((servico) => servico.id === 6);
-        token_documento = token_documentos.token_documentos
-          ? token_documentos[0].token_documentos
-          : undefined;
 
-        res
-          .status(200)
-          .send(
-            criaJwt(
-              id,
-              body.nome_schema,
-              mensagem,
-              token_documento,
-              token_agendaweb,
-            ),
+        const dadosClienteServico =
+          await new MessageService().getClienteServico(body.nome_schema);
+        if (dadosClienteServico.rows[0]) {
+          const dataCliente = {
+            nome: await dadosClienteServico.rows[0].nome,
+            nome_schema: await dadosClienteServico.rows[0].nome_schema,
+            idtelefonewhatsapp: await dadosClienteServico.rows[0]
+              .idtelefonewhatsapp,
+            tokenwhatsapp: await dadosClienteServico.rows[0].tokenwhatsapp,
+            contato: await dadosClienteServico.rows[0].contato,
+            endereco_publico_agendaweb: await dadosClienteServico.rows[0]
+              .endereco_publico_agendaweb,
+            id_cliente: await dadosClienteServico.rows[0].id_cliente,
+            servicos: [],
+          };
+          dataCliente.servicos = await dadosClienteServico.rows.map(
+            (servico) => {
+              return {
+                id_servico: servico.id_servico,
+                data_inicio: servico.data_inicio,
+                data_fim: servico.data_fim,
+                token: servico.token,
+              };
+            },
           );
+          res.status(200).send(dataCliente);
+        }
       }
     } else {
       const { id, mensagem } = await new MessageService().createCliente(
@@ -1373,20 +1512,52 @@ exports.postCliente = async (req, res, next) => {
 
       const servicos = await Promise.all(
         body.servicos.map(async (servico) => {
-          if (servico.id === 6) {
+          if (servico.id === '2') {
             const token = await getToken(body.nome_schema, id, servico);
-            return { id: servico.id, token_documentos: token };
+            return { id: servico.id, token_link: token };
+          }
+          if (servico.id === '3') {
+            const token = await getToken(body.nome_schema, id, servico);
+            return { id: servico.id, token_integracao: token };
+          }
+          if (servico.id === '4') {
+            const token = await getToken(body.nome_schema, id, servico);
+            return { id: servico.id, token_agendaweb: token };
+          }
+          if (servico.id === '6') {
+            const token = await getTokenDocs(body.nome_schema, id, servico);
+            return { id: servico.id, token_documento: token };
           }
           return servico;
         }),
       );
-      const token_documentos = servicos.filter((servico) => servico.id === 6);
-      token_documento = token_documentos.token_documentos
-        ? token_documentos[0].token_documentos
-        : undefined;
-      resSend.mensagemJson = mensagem;
-      resSend.token_documento = token_documento;
-      res.send(resSend);
+
+      const dadosClienteServico = await new MessageService().getClienteServico(
+        body.nome_schema,
+      );
+      if (dadosClienteServico.rows[0]) {
+        const dataCliente = {
+          nome: await dadosClienteServico.rows[0].nome,
+          nome_schema: await dadosClienteServico.rows[0].nome_schema,
+          idtelefonewhatsapp: await dadosClienteServico.rows[0]
+            .idtelefonewhatsapp,
+          tokenwhatsapp: await dadosClienteServico.rows[0].tokenwhatsapp,
+          contato: await dadosClienteServico.rows[0].contato,
+          endereco_publico_agendaweb: await dadosClienteServico.rows[0]
+            .endereco_publico_agendaweb,
+          id_cliente: await dadosClienteServico.rows[0].id_cliente,
+          servicos: [],
+        };
+        dataCliente.servicos = await dadosClienteServico.rows.map((servico) => {
+          return {
+            id_servico: servico.id_servico,
+            data_inicio: servico.data_inicio,
+            data_fim: servico.data_fim,
+            token: servico.token,
+          };
+        });
+        res.status(200).send(dataCliente);
+      }
     }
   } catch (error) {
     res.status(400).send({
