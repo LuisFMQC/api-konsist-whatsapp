@@ -1,10 +1,16 @@
-const MessageRepository = require('../database/repositories/messageRepository');
+const MessageRepository = require("../database/repositories/messageRepository");
 
 class MessageService {
   constructor() {
     this.repository = new MessageRepository();
   }
 
+  async getProximaPegunta(idConversa) {
+    return this.repository.getProximaPergunta(idConversa);
+  }
+  async getMensagemFinal(resposta, idCliente) {
+    return this.repository.getMensagemFinal(resposta, idCliente);
+  }
   async getTokenKonsist(id, schema) {
     return this.repository.getTokenKonsist(id, schema);
   }
@@ -18,7 +24,7 @@ class MessageService {
       dadosPaciente,
       dadosAgendamento,
       idCliente,
-      code,
+      code
     );
   }
 
@@ -27,7 +33,7 @@ class MessageService {
       dadosPaciente,
       dadosAgendamento,
       idCliente,
-      code,
+      code
     );
   }
   async createEnvioToken(dadosPaciente, dadosAgendamento, idCliente, code) {
@@ -35,20 +41,20 @@ class MessageService {
       dadosPaciente,
       dadosAgendamento,
       idCliente,
-      code,
+      code
     );
   }
   async createEnvioRecaptacao(
     dadosPaciente,
     dadosAgendamento,
     idCliente,
-    code,
+    code
   ) {
     return this.repository.postDadosEnvioRecaptacao(
       dadosPaciente,
       dadosAgendamento,
       idCliente,
-      code,
+      code
     );
   }
   async createEnvioAvulso(dadosPaciente, idCliente, code) {
@@ -58,7 +64,7 @@ class MessageService {
     return this.repository.postDadosEnvioAniversario(
       dadosPaciente,
       idCliente,
-      code,
+      code
     );
   }
   async createNovoEnvioToken(dados, token) {
@@ -70,14 +76,14 @@ class MessageService {
     dadosAgendamento,
     idCliente,
     code,
-    idPergunta,
+    idPergunta
   ) {
     return this.repository.postDadosAtendimentoPesquisa(
       dadosPaciente,
       dadosAgendamento,
       idCliente,
       code,
-      idPergunta,
+      idPergunta
     );
   }
 
@@ -85,7 +91,7 @@ class MessageService {
     return this.repository.postDadosAtendimentoFalha(
       dadosPaciente,
       dadosAgendamento,
-      idCliente,
+      idCliente
     );
   }
 
@@ -93,7 +99,7 @@ class MessageService {
     return this.repository.postDadosAtendimentoNovoRegistro(
       dadosAtendimento,
       status,
-      code,
+      code
     );
   }
 
@@ -229,7 +235,7 @@ class MessageService {
       dadosPaciente,
       dadosAgendamento,
       idCliente,
-      tipo,
+      tipo
     );
   }
 
@@ -257,7 +263,7 @@ class MessageService {
     return this.repository.postNovoRegistroContato(
       dadosAtendimento,
       code,
-      resposta,
+      resposta
     );
   }
 
@@ -266,6 +272,7 @@ class MessageService {
       dadosAtendimento,
       code,
       resposta,
+      idPergunta
     );
   }
 
@@ -273,7 +280,7 @@ class MessageService {
     return this.repository.postNovoRegistroNota(
       dadosAtendimento,
       code,
-      resposta,
+      resposta
     );
   }
 
