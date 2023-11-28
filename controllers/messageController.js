@@ -851,12 +851,21 @@ async function proximaPergunta(idConversa) {
   return proximaPergunta;
 }
 
-async function mensagemFinal(resposta, idCliente) {
+async function mensagemFinal(resposta, idCliente, idMensagem) {
   const mensagemFinal = await new MessageService().getMensagemFinal(
     resposta,
     idCliente
   );
 
+  const dadosPergunta = await new MessageService().getRegistroPesquisa(
+    idMensagem
+  );
+  await new MessageService().novoRegistroPesquisa(
+    dadosPergunta.rows[0],
+    idMensagem,
+    resposta,
+    dadosPergunta.rows[0].idpergunta
+  );
   return mensagemFinal;
 }
 
@@ -936,7 +945,7 @@ async function enviaPesquisa(num, token, para, idMensagem, res, resposta) {
     const payload = await new MessageService().getRegistroPesquisa(idMensagem);
     await new MessageService().novoRegistroPesquisa(
       payload.rows[0],
-      id,
+      idMensagem,
       resposta,
       payload.rows[0].idpergunta
     );
@@ -1001,7 +1010,7 @@ async function enviaPesquisa(num, token, para, idMensagem, res, resposta) {
     }).then(async (response) => {
       if (res.status(200)) {
         const id = await response.data.messages[0].id;
-        await new MessageService().novoRegistroPesquisa(
+        const paload = await new MessageService().novoRegistroPesquisa(
           payload.rows[0],
           id,
           null,
@@ -2278,7 +2287,11 @@ exports.postWebhook = async (req, res, next) => {
                   phone_number_id,
                   token,
                   from,
-                  mensagemFinal(resposta, idCliente)
+                  mensagemFinal(
+                    resposta,
+                    idCliente,
+                    req.body.entry[0].changes[0].value.messages[0].context.id
+                  )
                 );
               }
             }

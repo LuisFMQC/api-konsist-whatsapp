@@ -267,7 +267,7 @@ class MessageService {
     );
   }
 
-  async novoRegistroPesquisa(dadosAtendimento, code, resposta) {
+  async novoRegistroPesquisa(dadosAtendimento, code, resposta, idPergunta) {
     return this.repository.postNovoRegistroPesquisa(
       dadosAtendimento,
       code,

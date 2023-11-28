@@ -1252,9 +1252,9 @@ class MessageRepository {
       const queryVerificaResposta =
         "SELECT * FROM enviospesquisa WHERE idconversa = $1";
       const queryVerificaPerguntaAtualComId =
-        "SELECT * FROM cliente_pergunta WHERE id_pergunta = $1";
+        "SELECT * FROM cliente_pergunta WHERE id = $1 AND ativo = true";
       const queryVerificaProximaPerguntaSemId =
-        "SELECT * FROM cliente_pergunta WHERE id_cliente = $1 ORDER BY ordem ASC LIMIT 1";
+        "SELECT * FROM cliente_pergunta WHERE id_cliente = $1 AND ativo = true ORDER BY ordem ASC LIMIT 1";
       const queryProximaPergunta =
         "SELECT * FROM cliente_pergunta WHERE ordem = $1";
 
@@ -1263,16 +1263,17 @@ class MessageRepository {
       ]);
       let id;
 
-      if (perguntaAtual.rows[0].idpergunta === null) {
+      if (respostaAtual.rows[0].idpergunta === null) {
         const proximaPergunta = await client.query(
           queryVerificaProximaPerguntaSemId,
           [respostaAtual.rows[0].idcliente]
         );
+        client.query("COMMIT");
         return proximaPergunta.rows[0];
       } else {
         const perguntaAtual = await client.query(
           queryVerificaPerguntaAtualComId,
-          [perguntaAtual.rows[0].idpergunta]
+          [respostaAtual.rows[0].idpergunta]
         );
         const ordem = (await perguntaAtual.rows[0].ordem) + 1;
         const proximaPergunta = await client.query(queryProximaPergunta, [
@@ -1293,12 +1294,11 @@ class MessageRepository {
   }
   async getMensagemFinal(resposta, idCliente) {
     const client = await db.connect();
-
     try {
       await client.query("BEGIN");
 
       const queryGetResposta =
-        "SELECT * FROM mensagemfinal WHERE idcliente = $1 AND nota = $2";
+        "SELECT * FROM mensagemfinal WHERE id_cliente = $1 AND nota = $2";
 
       const mensagemFinal = await client.query(queryGetResposta, [
         idCliente,
