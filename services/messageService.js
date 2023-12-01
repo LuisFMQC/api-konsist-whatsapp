@@ -137,6 +137,9 @@ class MessageService {
   async createPerguntaCliente(nomeSchema, perguntas) {
     return this.repository.insertPerguntaCliente(nomeSchema, perguntas);
   }
+  async createMensagemFinal(nomeSchema, perguntas) {
+    return this.repository.insertMensagemFinalCliente(nomeSchema, perguntas);
+  }
   async getClienteServicoUnico(nomeSchema, idServico) {
     return this.repository.getClienteServicoUnico(nomeSchema, idServico);
   }
@@ -212,6 +215,12 @@ class MessageService {
 
   async getClienteServico(idCliente) {
     return this.repository.getClienteServico(idCliente);
+  }
+  async getClientePergunta(idCliente) {
+    return this.repository.getClientePergunta(idCliente);
+  }
+  async getClienteMensagem(idCliente) {
+    return this.repository.getClienteMensagem(idCliente);
   }
 
   async getEnviosCobradosTodos(data_inicio, data_fim) {

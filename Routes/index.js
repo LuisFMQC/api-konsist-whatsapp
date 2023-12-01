@@ -1,36 +1,47 @@
-const messageController = require('../controllers/messageController');
-const express = require('express');
+const messageController = require("../controllers/messageController");
+const express = require("express");
 const router = express.Router();
-const { authenticate } = require('../auth/verificaJWT');
+const { authenticate } = require("../auth/verificaJWT");
 
-router.get('/', authenticate, (req, res, next) => {
-  res.status(200).send('Api Whatsapp KonsistMed');
+router.get("/", authenticate, (req, res, next) => {
+  res.status(200).send("Api Whatsapp KonsistMed");
 });
 
-router.get('/webhook', messageController.getwebhook);
-router.post('/webhook', messageController.postWebhook);
+router.get("/webhook", messageController.getwebhook);
+router.post("/webhook", messageController.postWebhook);
 router.post(
-  '/criaratualizarcliente',
+  "/criaratualizarcliente",
   authenticate,
-  messageController.postCliente,
+  messageController.postCliente
 );
 router.post(
-  '/criaratualizarperguntas',
+  "/criaratualizarperguntas",
   authenticate,
-  messageController.postPerguntaCliente,
+  messageController.postPerguntaCliente
 );
 router.post(
-  '/verificacadastro',
+  "/criaratualizarmensagens",
   authenticate,
-  messageController.getClienteServico,
+  messageController.postMensagemFinal
 );
-router.post('/criarservico', authenticate, messageController.postServico);
-router.get('/servicos', authenticate, messageController.getServicos);
-router.post('/gettoken', messageController.getToken);
 router.post(
-  '/registrotoken',
+  "/verificacadastro",
   authenticate,
-  messageController.postRegistroToken,
+  messageController.getClienteServico
+);
+router.post(
+  "/verificaclienteperguntas",
+  authenticate,
+  messageController.getClientePerguntas
+);
+router.post("/criarservico", authenticate, messageController.postServico);
+router.post("/criarservico", authenticate, messageController.postServico);
+router.get("/servicos", authenticate, messageController.getServicos);
+router.post("/gettoken", messageController.getToken);
+router.post(
+  "/registrotoken",
+  authenticate,
+  messageController.postRegistroToken
 );
 
 module.exports = router;

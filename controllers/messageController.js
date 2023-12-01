@@ -1374,6 +1374,58 @@ exports.getClienteServico = async (req, res, next) => {
     next(error);
   }
 };
+exports.getClientePerguntas = async (req, res, next) => {
+  try {
+    const body = req.body;
+    const dadosClientePergunta = await new MessageService().getClientePergunta(
+      body.nome_schema
+    );
+    const dadosClienteMensagem = await new MessageService().getClienteMensagem(
+      body.nome_schema
+    );
+    if (dadosClientePergunta.rows[0]) {
+      const dataCliente = {
+        nome: await dadosClientePergunta.rows[0].nome,
+        nome_schema: await dadosClientePergunta.rows[0].nome_schema,
+        idtelefonewhatsapp: await dadosClientePergunta.rows[0]
+          .idtelefonewhatsapp,
+        tokenwhatsapp: await dadosClientePergunta.rows[0].tokenwhatsapp,
+        contato: await dadosClientePergunta.rows[0].contato,
+        endereco_publico_agendaweb: await dadosClientePergunta.rows[0]
+          .endereco_publico_agendaweb,
+        id_cliente: await dadosClientePergunta.rows[0].id_cliente,
+        perguntas: [],
+        mensagens: [],
+      };
+      dataCliente.perguntas = await dadosClientePergunta.rows.map(
+        (pergunta) => {
+          return {
+            id_pergunta: pergunta.id_pergunta,
+            pergunta: pergunta.pergunta,
+            ordem: pergunta.ordem,
+            ativo: pergunta.ativo,
+          };
+        }
+      );
+      dataCliente.mensagens = await dadosClienteMensagem.rows.map(
+        (mensagem) => {
+          return {
+            nota: mensagem.nota,
+            mensagem: mensagem.mensagem,
+          };
+        }
+      );
+      res.status(200).send(dataCliente);
+    } else {
+      res.status(400).send("Cliente não encontrado.");
+    }
+  } catch (error) {
+    res.status(400).send({
+      message: error.message,
+    });
+    next(error);
+  }
+};
 
 exports.getEnviosCobradosTodos = async (req, res, next) => {
   try {
@@ -1603,6 +1655,21 @@ exports.postPerguntaCliente = async (req, res, next) => {
     await res.status(201).send(payload);
   } catch (e) {
     res.status(400).send("Erro ao cadastrar perguntas: " + e);
+  }
+};
+exports.postMensagemFinal = async (req, res, next) => {
+  try {
+    const body = await req.body;
+    const mensagens = await body[0].mensagens;
+    const nomeSchema = await body[0].nome_schema;
+
+    const payload = await new MessageService().createMensagemFinal(
+      nomeSchema,
+      mensagens
+    );
+    await res.status(201).send(payload);
+  } catch (e) {
+    res.status(400).send("Erro ao cadastrar Mensagens: " + e);
   }
 };
 

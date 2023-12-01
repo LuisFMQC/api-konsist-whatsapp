@@ -904,6 +904,21 @@ class MessageRepository {
 
     return dados;
   }
+  async getClienteMensagem(code) {
+    const query =
+      "SELECT * FROM cliente AS a JOIN mensagemfinal AS c ON a.id = c.id_cliente WHERE a.nome_schema = $1";
+    const dados = await new Promise((resolve, reject) => {
+      db.query(query, [code], (erro, result) => {
+        if (erro) {
+          console.log(erro);
+          return reject("Erro:" + erro);
+        }
+        return resolve(result);
+      });
+    });
+
+    return dados;
+  }
   async getClientePerguntaUnica(code) {
     const query =
       "SELECT * FROM cliente AS a JOIN cliente_pergunta AS c ON a.id = c.id_cliente WHERE a.nome_schema = $1 AND c.id = $2";
@@ -1234,6 +1249,61 @@ class MessageRepository {
       }
       await client.query("COMMIT");
       return mensagem;
+    } catch (e) {
+      await client.query("ROLLBACK");
+      console.error("Erro na transação:", e);
+      throw e;
+    } finally {
+      client.release();
+    }
+  }
+  async insertMensagemFinalCliente(nomeSchema, mensagens) {
+    const client = await db.connect();
+
+    try {
+      await client.query("BEGIN");
+
+      const queryVerificaCliente =
+        'SELECT * FROM "cliente" WHERE "nome_schema" = $1';
+      const queryVerificaMensagem =
+        "SELECT * FROM mensagemfinal WHERE nota = $1 AND id_cliente = $2";
+      const queryMensagemCriar =
+        'INSERT INTO "mensagemfinal" ( "id_cliente", "mensagem", "nota") VALUES ( $1, $2, $3 )';
+      const queryMensagemAtualizar =
+        'UPDATE "mensagemfinal" SET "mensagem" = $1 WHERE "id_cliente" = $2 AND "nota" = $3';
+
+      const clienteCadastrado = await client.query(queryVerificaCliente, [
+        nomeSchema,
+      ]);
+      let id;
+      let mensagemFinal;
+      id = (await clienteCadastrado.rows[0])
+        ? clienteCadastrado.rows[0].id
+        : null;
+
+      for (const mensagem of mensagens) {
+        const mensagemCadastrada = await client.query(queryVerificaMensagem, [
+          mensagem.nota,
+          id,
+        ]);
+        if (mensagemCadastrada.rows[0]) {
+          await client.query(queryMensagemAtualizar, [
+            mensagem.mensagem,
+            id,
+            mensagem.nota,
+          ]);
+          mensagemFinal = "Mensagens atualizadas com sucesso!";
+        } else {
+          await client.query(queryMensagemCriar, [
+            id,
+            mensagem.mensagem,
+            mensagem.nota,
+          ]);
+          mensagemFinal = "Mensagens cadastradas com sucesso!";
+        }
+      }
+      await client.query("COMMIT");
+      return mensagemFinal;
     } catch (e) {
       await client.query("ROLLBACK");
       console.error("Erro na transação:", e);
