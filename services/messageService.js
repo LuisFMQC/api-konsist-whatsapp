@@ -166,6 +166,19 @@ class MessageService {
   async getIdClientePesquisa(code) {
     return this.repository.getIdClientePesquisa(code);
   }
+  async getIdClienteAvulso(code) {
+    return this.repository.getIdClienteAvulsa(code);
+  }
+  async getIdClienteAniversarios(code) {
+    return this.repository.getIdClienteAniversarios(code);
+  }
+  async getIdClienteRecaptacao(code) {
+    return this.repository.getIdClienteRecaptacao(code);
+  }
+
+  async insertContatoRecusado(contato, idCliente) {
+    return this.repository.insertContatoRecusado(contato, idCliente);
+  }
 
   async getIdClienteNota(code) {
     return this.repository.getIdClienteNota(code);

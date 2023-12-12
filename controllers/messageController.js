@@ -2302,6 +2302,57 @@ exports.postWebhook = async (req, res, next) => {
                 );
               }
             }
+          } else if (
+            body.entry[0].changes[0].value.messages[0].button.payload ===
+            "Parar de receber"
+          ) {
+            // console.log(JSON.stringify(body, null, 2));
+            let idCliente = await new MessageService().getIdClienteAvulso(
+              body.entry[0].changes[0].value.messages[0].context.id
+            );
+            // console.log(await idCliente);
+            if (idCliente.rowCount === 0) {
+              idCliente = await new MessageService().getIdClienteRecaptacao(
+                body.entry[0].changes[0].value.messages[0].context.id
+              );
+              if (idCliente.rowCount === 0) {
+                idCliente = await new MessageService().getIdClienteAniversarios(
+                  body.entry[0].changes[0].value.messages[0].context.id
+                );
+              }
+            }
+            const dadosCliente = (await idCliente.rows[0])
+              ? await new MessageService().getClienteById(
+                  idCliente.rows[0].idcliente
+                )
+              : null;
+            const token =
+              (await dadosCliente) !== null &&
+              (await dadosCliente.rowCount) !== 0
+                ? await dadosCliente.rows[0].tokenwhatsapp
+                : null;
+            if (token) {
+              if (
+                await new MessageService().insertContatoRecusado(
+                  from,
+                  await idCliente.rows[0].idcliente
+                )
+              ) {
+                enviaResposta(
+                  phone_number_id,
+                  token,
+                  from,
+                  "Obrigado por responder, não se preocupe, a partir de hoje você não receberá mais mensagens de caráter de marketing da " +
+                    dadosCliente.rows[0].nome +
+                    ". Tenha um excelente dia."
+                );
+              }
+
+              // const payload = await new MessageService().insertContatoRecusado(
+              //   from,
+              //   await idCliente.rows[0].idcliente
+              // );
+            }
           }
         } else if (body.entry[0].changes[0].value.messages[0].interactive) {
           if (
