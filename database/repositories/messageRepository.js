@@ -71,6 +71,20 @@ class MessageRepository {
     });
     return dados;
   }
+  async getAllContatosRecusados(idContatoRecusado, nomeSchema) {
+    const query =
+      "SELECT a.id, a.contato, a.datainclusao FROM contato_recusado AS a JOIN cliente AS c ON a.id_cliente = c.id WHERE a.id > $1 AND c.nome_schema = $2 ORDER BY a.id ASC;";
+    const dados = await new Promise((resolve, reject) => {
+      db.query(query, [idContatoRecusado, nomeSchema], (erro, result) => {
+        if (erro) {
+          console.log(erro);
+          return reject("Erro:" + erro);
+        }
+        return resolve(result);
+      });
+    });
+    return dados;
+  }
 
   async getMessageById(idConversa) {
     const query = 'SELECT * FROM "confirmacaowhatsapp" WHERE "idconversa" = $1';

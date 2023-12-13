@@ -1146,6 +1146,21 @@ exports.getPesquisa = async (req, res, next) => {
     next(error);
   }
 };
+exports.getContatosRecusados = async (req, res, next) => {
+  try {
+    const body = await req.body;
+    const payload = await new MessageService().getContatosRecusados(
+      body.id,
+      body.nome_schema
+    );
+    res.status(200).send(payload.rows);
+  } catch (error) {
+    res.status(400).send({
+      message: error.message,
+    });
+    next(error);
+  }
+};
 
 exports.getSolicitacaoContato = async (req, res, next) => {
   try {

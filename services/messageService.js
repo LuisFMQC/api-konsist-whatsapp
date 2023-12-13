@@ -197,6 +197,12 @@ class MessageService {
   async getAllNotas(dados, idCliente) {
     return this.repository.getAllNotas(dados, idCliente);
   }
+  async getContatosRecusados(idContatoRecusado, nome_schema) {
+    return this.repository.getAllContatosRecusados(
+      idContatoRecusado,
+      nome_schema
+    );
+  }
 
   async getSolicitacaoContato(id, idCliente) {
     return this.repository.getSolicitacaoContato(id, idCliente);
