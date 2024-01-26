@@ -1520,6 +1520,7 @@ exports.postCliente = async (req, res, next) => {
         return token;
       }
     }
+
     const verificaWpp = await body.servicos.map((servico) => {
       if (servico.id === "1" || servico.id === 1) return true;
     });
@@ -1554,11 +1555,11 @@ exports.postCliente = async (req, res, next) => {
               const token = await getTokenDocs(body.nome_schema, id, servico);
               return { id: servico.id, token_documento: token };
             }
-            if (servico.id === "1") {
-              const { token_whatsapp } = criaJwt(id, body.nome_schema);
+            if (servico.id === "1" || servico.id === 1) {
+              const { token } = criaJwt(id, body.nome_schema);
               const payload = await new MessageService().updateClienteServico(
                 servico,
-                token_whatsapp,
+                token,
                 id
               );
             }

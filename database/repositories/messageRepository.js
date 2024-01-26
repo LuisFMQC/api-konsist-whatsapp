@@ -1216,9 +1216,9 @@ class MessageRepository {
       const queryVerificaServico =
         "SELECT * FROM cliente_servico WHERE id_servico = $1 AND id_cliente = $2";
       const queryClienteCriar =
-        'INSERT INTO "cliente" ( "nome", "idcliente", "nome_schema", "idtelefonewhatsapp", "tokenwhatsapp", "contato" ) VALUES ( $1, $2, $3, $4, $5, $6 ) RETURNING id';
+        'INSERT INTO "cliente" ( "nome", "idcliente", "nome_schema", "idtelefonewhatsapp", "tokenwhatsapp", "contato", "endereco_publico_agendaweb", "api_endereco" ) VALUES ( $1, $2, $3, $4, $5, $6, $7, $8 ) RETURNING id';
       const queryClienteAtualizar =
-        'UPDATE "cliente" SET "idtelefonewhatsapp" = $1, "tokenwhatsapp" = $2, "contato" = $3, "nome" = $4 WHERE "nome_schema" = $5 RETURNING id';
+        'UPDATE "cliente" SET "idtelefonewhatsapp" = $1, "tokenwhatsapp" = $2, "contato" = $3, "nome" = $4, "endereco_publico_agendaweb" = $5, "api_endereco" = $6 WHERE "nome_schema" = $7 RETURNING id';
 
       const queryServicoCriar =
         'INSERT INTO "cliente_servico" ( "id_servico", "id_cliente", "data_inicio", "data_fim" ) VALUES ( $1, $2, $3, $4 )';
@@ -1237,6 +1237,8 @@ class MessageRepository {
           dadosCliente.tokenwhatsapp,
           dadosCliente.contato,
           dadosCliente.nome,
+          dadosCliente.endereco_publico_agendaweb,
+          dadosCliente.endereco_publico_agendaweb,
           dadosCliente.nome_schema,
         ]);
         id = clienteAntigo.rows[0].id;
@@ -1249,6 +1251,8 @@ class MessageRepository {
           dadosCliente.idtelefonewhatsapp,
           dadosCliente.tokenwhatsapp,
           dadosCliente.contato,
+          dadosCliente.endereco_publico_agendaweb,
+          dadosCliente.endereco_publico_agendaweb,
         ]);
         id = novoCliente.rows[0].id;
       }
