@@ -1034,6 +1034,51 @@ async function verificaData(nomeSchema, idServico) {
     return false;
   }
 }
+
+function organizarNotas(payload) {
+  const notasOrganizadas = [];
+
+  for (const item of payload) {
+    const chave = item.chave;
+    let notaExistente = notasOrganizadas.find((nota) => nota.chave === chave);
+
+    if (notaExistente) {
+      notaExistente.notas.push({
+        id: item.id,
+        idconversa: item.idconversa,
+        id_pergunta: item.id_pergunta,
+        resposta: item.resposta,
+        ordem: item.ordem,
+        pergunta: item.pergunta,
+        datainclusao: item.datainclusao,
+      });
+    } else {
+      notasOrganizadas.push({
+        chave: item.chave,
+        idcliente: item.idcliente,
+        contato: item.contato,
+        data_atendimento: item.data_atendimento,
+        hora_atendimento: item.hora_atendimento,
+        nomepaciente: item.nomepaciente,
+        medico: item.medico,
+        localatendimento: item.localatendimento,
+        id_local: item.id_local,
+        notas: [
+          {
+            id: item.id,
+            idconversa: item.idconversa,
+            id_pergunta: item.id_pergunta,
+            resposta: item.resposta,
+            ordem: item.ordem,
+            pergunta: item.pergunta,
+            datainclusao: item.datainclusao,
+          },
+        ],
+      });
+    }
+  }
+  return notasOrganizadas;
+}
 exports.get = async (req, res, next) => {
   try {
     const body = await req.body;
@@ -1135,7 +1180,8 @@ exports.getPesquisa = async (req, res, next) => {
         body,
         dadosCliente.rows[0].id,
       );
-      res.status(200).send(payload.rows);
+      const resultadoTrat = organizarNotas(payload.rows);
+      res.status(200).send(resultadoTrat);
     }
   } catch (error) {
     res.status(400).send({
@@ -1518,6 +1564,7 @@ exports.postCliente = async (req, res, next) => {
         return token;
       }
     }
+
     const verificaWpp = await body.servicos.map((servico) => {
       if (servico.id === '1' || servico.id === 1) return true;
     });
@@ -1552,11 +1599,11 @@ exports.postCliente = async (req, res, next) => {
               const token = await getTokenDocs(body.nome_schema, id, servico);
               return { id: servico.id, token_documento: token };
             }
-            if (servico.id === '1') {
-              const { token_whatsapp } = criaJwt(id, body.nome_schema);
+            if (servico.id === '1' || servico.id === 1) {
+              const { token } = criaJwt(id, body.nome_schema);
               const payload = await new MessageService().updateClienteServico(
                 servico,
-                token_whatsapp,
+                token,
                 id,
               );
             }
