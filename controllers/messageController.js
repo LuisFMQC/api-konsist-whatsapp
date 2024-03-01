@@ -2330,7 +2330,6 @@ exports.postWebhook = async (req, res, next) => {
                 .payload) === 'Responder pesquisa'
                 ? 'rp'
                 : 'nr';
-            console.log(resposta);
             const idCliente = await new MessageService().getIdClientePesquisa(
               body.entry[0].changes[0].value.messages[0].context.id,
             );
