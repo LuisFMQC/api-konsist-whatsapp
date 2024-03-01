@@ -85,20 +85,6 @@ class MessageRepository {
     });
     return dados;
   }
-  async getContatoRecusado(contato, idCliente) {
-    const query =
-      'SELECT * FROM contato_recusado WHERE contato = $1 AND id_cliente = $2';
-    const dados = await new Promise((resolve, reject) => {
-      db.query(query, [contato, idCliente], (erro, result) => {
-        if (erro) {
-          console.log(erro);
-          return reject('Erro:' + erro);
-        }
-        return resolve(result);
-      });
-    });
-    return dados;
-  }
 
   async getMessageById(idConversa) {
     const query = 'SELECT * FROM "confirmacaowhatsapp" WHERE "idconversa" = $1';
@@ -261,7 +247,8 @@ class MessageRepository {
     return dados;
   }
   async getRegistroPesquisa(code) {
-    const query = 'SELECT * FROM "enviospesquisa" WHERE "idconversa" = $1';
+    const query =
+      'SELECT * FROM "enviospesquisa" WHERE "idconversa" = $1 ORDER BY id DESC LIMIT 1';
 
     const dados = await new Promise((resolve, reject) => {
       db.query(query, [code], (erro, result) => {
@@ -1235,9 +1222,9 @@ class MessageRepository {
         'UPDATE "cliente" SET "idtelefonewhatsapp" = $1, "tokenwhatsapp" = $2, "contato" = $3, "nome" = $4, "endereco_publico_agendaweb" = $5, "api_endereco" = $6 WHERE "nome_schema" = $7 RETURNING id';
 
       const queryServicoCriar =
-        'INSERT INTO "cliente_servico" ( "id_servico", "id_cliente", "data_inicio", "data_fim" ) VALUES ( $1, $2, $3, $4 )';
+        'INSERT INTO "cliente_servico" ( "id_servico", "id_cliente", "data_inicio", "data_fim", "limite_usuario" ) VALUES ( $1, $2, $3, $4, $5 )';
       const queryServicoAtualizar =
-        'UPDATE "cliente_servico" SET "data_inicio" = $1, "data_fim" = $2 WHERE "id_cliente" = $3 AND "id_servico" = $4';
+        'UPDATE "cliente_servico" SET "data_inicio" = $1, "data_fim" = $2, "limite_usuario" = $3 WHERE "id_cliente" = $4 AND "id_servico" = $5';
 
       const clienteCadastrado = await client.query(queryVerificaCliente, [
         dadosCliente.nome_schema,
@@ -1280,6 +1267,7 @@ class MessageRepository {
           await client.query(queryServicoAtualizar, [
             servico.data_inicio,
             servico.data_fim,
+            servico.limite_usuario ? servico.limite_usuario : 0,
             clienteCadastrado.rows[0].id,
             servico.id,
           ]);
@@ -1289,6 +1277,7 @@ class MessageRepository {
             id,
             servico.data_inicio,
             servico.data_fim,
+            servico.limite_usuario ? servico.limite_usuario : 0,
           ]);
         }
       }

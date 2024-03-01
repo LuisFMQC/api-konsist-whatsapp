@@ -1420,6 +1420,7 @@ exports.getClienteServico = async (req, res, next) => {
           data_inicio: servico.data_inicio,
           data_fim: servico.data_fim,
           token: servico.token,
+          limite_usuario: servico.limite_usuario,
         };
       });
       res.status(200).send(dataCliente);
@@ -1633,6 +1634,7 @@ exports.postCliente = async (req, res, next) => {
                 data_inicio: servico.data_inicio,
                 data_fim: servico.data_fim,
                 token: servico.token,
+                limite_usuario: servico.limite_usuario,
               };
             },
           );
@@ -1689,6 +1691,7 @@ exports.postCliente = async (req, res, next) => {
             data_inicio: servico.data_inicio,
             data_fim: servico.data_fim,
             token: servico.token,
+            limite_usuario: servico.limite_usuario,
           };
         });
         res.status(200).send(dataCliente);
